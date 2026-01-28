@@ -10,8 +10,148 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 0) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_28_000007) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
+  create_table "accounts", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "default_hourly_rate_cents", default: 0, null: false
+    t.string "company_name"
+    t.boolean "gst_registered", default: false, null: false
+    t.string "abn"
+    t.string "company_licence_number"
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "name", null: false
+    t.string "email"
+    t.string "phone"
+    t.text "billing_address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "email"], name: "index_customers_on_account_id_and_email"
+    t.index ["account_id"], name: "index_customers_on_account_id"
+  end
+
+  create_table "invoice_line_items", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "invoice_id", null: false
+    t.string "item_type", null: false
+    t.text "description", null: false
+    t.decimal "quantity", precision: 10, scale: 2, default: "1.0", null: false
+    t.integer "unit_price_cents", default: 0, null: false
+    t.integer "total_cents", default: 0, null: false
+    t.string "source_type"
+    t.bigint "source_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_invoice_line_items_on_account_id"
+    t.index ["invoice_id"], name: "index_invoice_line_items_on_invoice_id"
+    t.index ["source_type", "source_id"], name: "index_invoice_line_items_on_source_type_and_source_id"
+  end
+
+  create_table "invoices", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "customer_id", null: false
+    t.bigint "job_id"
+    t.string "status", default: "draft", null: false
+    t.date "issued_on", null: false
+    t.date "due_on", null: false
+    t.string "invoice_number", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "invoice_number"], name: "index_invoices_on_account_id_and_invoice_number", unique: true
+    t.index ["account_id"], name: "index_invoices_on_account_id"
+    t.index ["customer_id"], name: "index_invoices_on_customer_id"
+    t.index ["job_id"], name: "index_invoices_on_job_id"
+  end
+
+  create_table "jobs", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "customer_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.text "site_address"
+    t.string "status", default: "prospect", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "status"], name: "index_jobs_on_account_id_and_status"
+    t.index ["account_id"], name: "index_jobs_on_account_id"
+    t.index ["customer_id"], name: "index_jobs_on_customer_id"
+  end
+
+  create_table "material_purchases", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "job_id", null: false
+    t.date "purchased_on", null: false
+    t.string "supplier_name", null: false
+    t.text "description"
+    t.decimal "quantity", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "unit_cost_cents", default: 0, null: false
+    t.decimal "markup_percent", precision: 5, scale: 2, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "purchased_on"], name: "index_material_purchases_on_account_id_and_purchased_on"
+    t.index ["account_id"], name: "index_material_purchases_on_account_id"
+    t.index ["job_id"], name: "index_material_purchases_on_job_id"
+  end
+
+  create_table "timesheet_entries", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "job_id", null: false
+    t.date "work_date", null: false
+    t.integer "minutes", default: 0, null: false
+    t.integer "hourly_rate_cents", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "work_date"], name: "index_timesheet_entries_on_account_id_and_work_date"
+    t.index ["account_id"], name: "index_timesheet_entries_on_account_id"
+    t.index ["job_id"], name: "index_timesheet_entries_on_job_id"
+    t.index ["user_id"], name: "index_timesheet_entries_on_user_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "role", default: "staff", null: false
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "hourly_rate_cents", default: 0, null: false
+    t.string "name"
+    t.string "mobile"
+    t.integer "default_billing_rate_cents", default: 0, null: false
+    t.integer "hourly_cost_cents", default: 0, null: false
+    t.datetime "deactivated_at"
+    t.datetime "invitation_sent_at"
+    t.index ["account_id", "name"], name: "index_users_on_account_id_and_name"
+    t.index ["account_id"], name: "index_users_on_account_id"
+    t.index ["deactivated_at"], name: "index_users_on_deactivated_at"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+  end
+
+  add_foreign_key "customers", "accounts"
+  add_foreign_key "invoice_line_items", "accounts"
+  add_foreign_key "invoice_line_items", "invoices"
+  add_foreign_key "invoices", "accounts"
+  add_foreign_key "invoices", "customers"
+  add_foreign_key "invoices", "jobs"
+  add_foreign_key "jobs", "accounts"
+  add_foreign_key "jobs", "customers"
+  add_foreign_key "material_purchases", "accounts"
+  add_foreign_key "material_purchases", "jobs"
+  add_foreign_key "timesheet_entries", "accounts"
+  add_foreign_key "timesheet_entries", "jobs"
+  add_foreign_key "timesheet_entries", "users"
+  add_foreign_key "users", "accounts"
 end

@@ -1,0 +1,59 @@
+<%= form_with model: timesheet_entry, class: "space-y-6", data: { controller: "timesheet-totals" } do |form| %>
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <%= form.label :job_id, "Job", class: "text-sm font-medium text-slate-700" %>
+      <%= form.collection_select :job_id, @jobs, :id, :title, { prompt: "Select job" }, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+    <% if @users.any? %>
+      <div>
+        <%= form.label :user_id, "User", class: "text-sm font-medium text-slate-700" %>
+        <%= form.collection_select :user_id, @users, :id, :email, { prompt: "Select user" }, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <%= form.label :work_date, "Work date", class: "text-sm font-medium text-slate-700" %>
+      <%= form.date_field :work_date, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Duration</label>
+      <div class="mt-2 grid grid-cols-2 gap-3">
+        <div>
+          <%= number_field_tag "timesheet_entry[duration_hours]", @duration_hours, min: 0, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", placeholder: "Hours", data: { action: "input->timesheet-totals#update", timesheet_totals_target: "hours" } %>
+        </div>
+        <div>
+          <%= number_field_tag "timesheet_entry[duration_minutes]", @duration_minutes, min: 0, max: 59, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", placeholder: "Minutes", data: { action: "input->timesheet-totals#update", timesheet_totals_target: "minutes" } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <label class="text-sm font-medium text-slate-700">Hourly rate</label>
+      <div class="mt-2 flex items-center gap-2">
+        <span class="text-sm text-slate-400">$</span>
+        <%= number_field_tag "timesheet_entry[hourly_rate_dollars]", @hourly_rate_dollars, step: 0.01, min: 0, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", data: { action: "input->timesheet-totals#update", timesheet_totals_target: "rate" } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+    <div class="flex items-center justify-between">
+      <span>Estimated total</span>
+      <span class="font-semibold" data-timesheet-totals-target="total"><%= number_to_currency(timesheet_entry.total_cents / 100.0) %></span>
+    </div>
+  </div>
+
+  <div>
+    <%= form.label :notes, class: "text-sm font-medium text-slate-700" %>
+    <%= form.text_area :notes, rows: 4, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= form.submit class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+    <%= link_to "Cancel", timesheet_entries_path, class: "text-sm text-slate-500 hover:text-slate-700" %>
+  </div>
+<% end %>

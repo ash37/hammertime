@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Invoice <%= @invoice&.invoice_number %> | Hammertime</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="bg-white text-slate-900 print:bg-white print:text-black">
+    <main class="mx-auto max-w-4xl px-6 py-8">
+      <%= yield %>
+    </main>
+  </body>
+</html>

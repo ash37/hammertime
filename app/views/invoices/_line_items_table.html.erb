@@ -1,0 +1,29 @@
+<div id="invoice_line_items" class="overflow-hidden rounded-xl border border-slate-100">
+  <table class="min-w-full divide-y divide-slate-100 text-sm">
+    <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
+      <tr>
+        <th class="px-4 py-3 text-left">Type</th>
+        <th class="px-4 py-3 text-left">Description</th>
+        <th class="px-4 py-3 text-right">Qty</th>
+        <th class="px-4 py-3 text-right">Unit</th>
+        <th class="px-4 py-3 text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 text-slate-600">
+      <% line_items.each do |item| %>
+        <tr>
+          <td class="px-4 py-3 capitalize"><%= item.item_type %></td>
+          <td class="px-4 py-3 text-slate-900"><%= item.description %></td>
+          <td class="px-4 py-3 text-right"><%= item.quantity.to_f %></td>
+          <td class="px-4 py-3 text-right"><%= number_to_currency(item.unit_price_cents / 100.0) %></td>
+          <td class="px-4 py-3 text-right font-semibold text-slate-900"><%= number_to_currency(item.total_cents / 100.0) %></td>
+        </tr>
+      <% end %>
+      <% if line_items.empty? %>
+        <tr>
+          <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="5">No line items yet.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

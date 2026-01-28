@@ -1,0 +1,66 @@
+<%= form_with model: user, class: "space-y-6" do |form| %>
+  <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+    Email address is used as the username to sign in.
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <%= form.label :name, class: "text-sm font-medium text-slate-700" %>
+      <%= form.text_field :name, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <%= form.label :email, class: "text-sm font-medium text-slate-700" %>
+      <%= form.email_field :email, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <%= form.label :mobile, class: "text-sm font-medium text-slate-700" %>
+      <%= form.telephone_field :mobile, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <%= form.label :role, class: "text-sm font-medium text-slate-700" %>
+      <%= form.select :role, User.roles.keys.map { |role| [role.titleize, role] }, {}, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <label class="text-sm font-medium text-slate-700">Default Billing Rate ($/hr)</label>
+      <div class="mt-2 flex items-center gap-2">
+        <span class="text-sm text-slate-400">$</span>
+        <%= number_field_tag "user[default_billing_rate_dollars]", @default_billing_rate_dollars, step: 0.01, min: 0, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+      </div>
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Hourly Cost ($/hr)</label>
+      <div class="mt-2 flex items-center gap-2">
+        <span class="text-sm text-slate-400">$</span>
+        <%= number_field_tag "user[hourly_cost_dollars]", @hourly_cost_dollars, step: 0.01, min: 0, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <%= form.label :password, class: "text-sm font-medium text-slate-700" %>
+      <%= form.password_field :password, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", autocomplete: "new-password" %>
+      <p class="mt-2 text-xs text-slate-400">Leave blank to send an invite instead.</p>
+    </div>
+    <div>
+      <%= form.label :password_confirmation, class: "text-sm font-medium text-slate-700" %>
+      <%= form.password_field :password_confirmation, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", autocomplete: "new-password" %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= check_box_tag "user[send_invite]", "1", false, class: "h-4 w-4 rounded border-slate-300 text-slate-900" %>
+    <span class="text-sm text-slate-600">Send invitation email to set password later.</span>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= form.submit class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+    <%= link_to "Cancel", users_path, class: "text-sm text-slate-500 hover:text-slate-700" %>
+  </div>
+<% end %>

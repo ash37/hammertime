@@ -1,0 +1,19 @@
+<div class="flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Invoice</p>
+    <h1 class="mt-2 text-2xl font-semibold text-slate-900">##<%= invoice.invoice_number %></h1>
+    <p class="mt-1 text-sm text-slate-500"><%= invoice.customer.name %></p>
+    <% if invoice.job %>
+      <p class="text-sm text-slate-500">Job: <%= link_to invoice.job.title, job_path(invoice.job), class: "underline" %></p>
+    <% end %>
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="rounded-full px-3 py-1 text-xs font-semibold <%= invoice.status == "paid" ? "bg-emerald-100 text-emerald-700" : invoice.status == "sent" ? "bg-blue-100 text-blue-700" : invoice.status == "void" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700" %>">
+      <%= invoice.status.titleize %>
+    </span>
+    <div class="text-right text-xs text-slate-500">
+      <p>Issued: <%= invoice.issued_on.strftime("%d %b %Y") %></p>
+      <p>Due: <%= invoice.due_on.strftime("%d %b %Y") %></p>
+    </div>
+  </div>
+</div>

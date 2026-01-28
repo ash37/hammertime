@@ -1,0 +1,53 @@
+<div id="invoice_materials_picker" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="flex items-center justify-between">
+    <div>
+      <p class="text-sm font-semibold text-slate-900">Add materials</p>
+      <p class="text-xs text-slate-500">Unbilled purchases for this job</p>
+    </div>
+  </div>
+
+  <% if invoice.job && (current_user&.owner? || current_user&.admin?) %>
+    <%= form_with url: add_materials_invoice_path(invoice), method: :post, class: "mt-4 space-y-4" do %>
+      <div class="overflow-hidden rounded-xl border border-slate-100">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
+          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
+            <tr>
+              <th class="px-4 py-3 text-left"></th>
+              <th class="px-4 py-3 text-left">Date</th>
+              <th class="px-4 py-3 text-left">Supplier</th>
+              <th class="px-4 py-3 text-left">Description</th>
+              <th class="px-4 py-3 text-right">Qty</th>
+              <th class="px-4 py-3 text-right">Unit sell</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-600">
+            <% unbilled_materials.each do |purchase| %>
+              <tr>
+                <td class="px-4 py-3">
+                  <%= check_box_tag "material_purchase_ids[]", purchase.id, false, class: "h-4 w-4 rounded border-slate-300 text-slate-900" %>
+                </td>
+                <td class="px-4 py-3"><%= purchase.purchased_on.strftime("%d %b %Y") %></td>
+                <td class="px-4 py-3"><%= purchase.supplier_name %></td>
+                <td class="px-4 py-3"><%= purchase.description %></td>
+                <td class="px-4 py-3 text-right"><%= purchase.quantity.to_f %></td>
+                <td class="px-4 py-3 text-right"><%= number_to_currency(purchase.sell_unit_price_cents / 100.0) %></td>
+              </tr>
+            <% end %>
+            <% if unbilled_materials.empty? %>
+              <tr>
+                <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="6">No unbilled materials.</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-end">
+        <%= submit_tag "Add selected materials", class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800", disabled: unbilled_materials.empty? %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="mt-4 rounded-xl border border-dashed border-slate-200 p-4 text-sm text-slate-500">
+      Assign a job to this invoice to add materials.
+    </div>
+  <% end %>
+</div>

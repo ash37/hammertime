@@ -1,0 +1,31 @@
+<% content_for :page_title, "Company Details" %>
+
+<div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+  <%= form_with model: @account, url: settings_company_path, method: :patch, class: "space-y-6" do |form| %>
+    <div>
+      <%= form.label :company_name, "Company name", class: "text-sm font-medium text-slate-700" %>
+      <%= form.text_field :company_name, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-2">
+      <div>
+        <%= form.label :gst_registered, "GST registered", class: "text-sm font-medium text-slate-700" %>
+        <%= form.select :gst_registered, [["Yes", true], ["No", false]], {}, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+      </div>
+      <div>
+        <%= form.label :abn, "ABN", class: "text-sm font-medium text-slate-700" %>
+        <%= form.text_field :abn, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+      </div>
+    </div>
+
+    <div>
+      <%= form.label :company_licence_number, "Company licence number", class: "text-sm font-medium text-slate-700" %>
+      <%= form.text_field :company_licence_number, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <%= form.submit "Save changes", class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+      <%= link_to "Cancel", authenticated_root_path, class: "text-sm text-slate-500 hover:text-slate-700" %>
+    </div>
+  <% end %>
+</div>

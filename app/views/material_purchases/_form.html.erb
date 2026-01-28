@@ -1,0 +1,57 @@
+<%= form_with model: material_purchase, class: "space-y-6", data: { controller: "material-totals" } do |form| %>
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <%= form.label :job_id, "Job", class: "text-sm font-medium text-slate-700" %>
+      <%= form.collection_select :job_id, @jobs, :id, :title, { prompt: "Select job" }, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <%= form.label :purchased_on, "Purchased on", class: "text-sm font-medium text-slate-700" %>
+      <%= form.date_field :purchased_on, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <%= form.label :supplier_name, "Supplier", class: "text-sm font-medium text-slate-700" %>
+      <%= form.text_field :supplier_name, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <%= form.label :description, class: "text-sm font-medium text-slate-700" %>
+      <%= form.text_field :description, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-3">
+    <div>
+      <%= form.label :quantity, class: "text-sm font-medium text-slate-700" %>
+      <%= form.number_field :quantity, step: 0.01, min: 0, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", data: { action: "input->material-totals#update", material_totals_target: "quantity" } %>
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Unit cost</label>
+      <div class="mt-2 flex items-center gap-2">
+        <span class="text-sm text-slate-400">$</span>
+        <%= number_field_tag "material_purchase[unit_cost_dollars]", @unit_cost_dollars, step: 0.01, min: 0, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", data: { action: "input->material-totals#update", material_totals_target: "unitCost" } %>
+      </div>
+    </div>
+    <div>
+      <%= form.label :markup_percent, "Markup %", class: "text-sm font-medium text-slate-700" %>
+      <%= form.number_field :markup_percent, step: 0.01, min: 0, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", data: { action: "input->material-totals#update", material_totals_target: "markup" } %>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+    <div class="flex items-center justify-between">
+      <span>Sell unit price</span>
+      <span class="font-semibold" data-material-totals-target="sellUnit"><%= number_to_currency(material_purchase.sell_unit_price_cents / 100.0) %></span>
+    </div>
+    <div class="mt-2 flex items-center justify-between">
+      <span>Total sell</span>
+      <span class="font-semibold" data-material-totals-target="total"><%= number_to_currency(material_purchase.total_sell_cents / 100.0) %></span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= form.submit class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+    <%= link_to "Cancel", material_purchases_path, class: "text-sm text-slate-500 hover:text-slate-700" %>
+  </div>
+<% end %>
