@@ -1,0 +1,12 @@
+<turbo-frame id="modal" data-controller="modal">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" data-action="click->modal#backdrop">
+    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-900">New customer</h2>
+      </div>
+      <div class="mt-4">
+        <%= render "customers/form", customer: @customer %>
+      </div>
+    </div>
+  </div>
+</turbo-frame>

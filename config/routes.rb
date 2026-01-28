@@ -24,7 +24,7 @@ Rails.application.routes.draw do
 
   get "/dashboard", to: "dashboard#show"
 
-  resources :jobs, only: [ :index, :show ] do
+  resources :jobs do
     post :add_timesheets_to_invoice, on: :member
     post :add_materials_to_invoice, on: :member
   end

@@ -1,0 +1,37 @@
+<%= form_with model: job, class: "space-y-6" do |form| %>
+  <div>
+    <%= form.label :title, class: "text-sm font-medium text-slate-700" %>
+    <%= form.text_field :title, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div>
+      <div class="flex items-center gap-3">
+        <%= form.label :customer_id, "Customer", class: "text-sm font-medium text-slate-700" %>
+        <%= link_to "Add New", new_customer_path, data: { turbo_frame: "modal" }, class: "text-xs font-semibold text-emerald-600 hover:text-emerald-700" %>
+      </div>
+      <%= turbo_frame_tag "job_customer_select" do %>
+        <%= render "jobs/customer_select", customers: @customers, selected_customer_id: form.object.customer_id %>
+      <% end %>
+    </div>
+    <div>
+      <%= form.label :status, class: "text-sm font-medium text-slate-700" %>
+      <%= form.select :status, Job.statuses.keys.map { |status| [status.titleize, status] }, {}, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    </div>
+  </div>
+
+  <div>
+    <%= form.label :site_address, class: "text-sm font-medium text-slate-700" %>
+    <%= form.text_field :site_address, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+  </div>
+
+  <div>
+    <%= form.label :description, class: "text-sm font-medium text-slate-700" %>
+    <%= form.text_area :description, rows: 4, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= form.submit class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+    <%= link_to "Cancel", jobs_path, class: "text-sm text-slate-500 hover:text-slate-700" %>
+  </div>
+<% end %>

@@ -1,33 +1,41 @@
 <% content_for :page_title, "Jobs" %>
 
-<div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-  <div class="overflow-hidden rounded-xl border border-slate-100">
-    <table class="min-w-full divide-y divide-slate-100 text-sm">
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <p class="text-sm text-slate-500">Track jobs and client work.</p>
+    <%= link_to "New job", new_job_path, class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="overflow-hidden rounded-xl border border-slate-100">
+      <table class="min-w-full divide-y divide-slate-100 text-sm">
       <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
         <tr>
-          <th class="px-4 py-3 text-left">Job</th>
-          <th class="px-4 py-3 text-left">Customer</th>
-          <th class="px-4 py-3 text-left">Status</th>
-          <th class="px-4 py-3 text-right">Actions</th>
+        <th class="px-4 py-3 text-left">Job</th>
+        <th class="px-4 py-3 text-left">Customer</th>
+        <th class="px-4 py-3 text-left">Status</th>
+        <th class="px-4 py-3 text-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 text-slate-600">
+      <% @jobs.each do |job| %>
+        <tr>
+          <td class="px-4 py-3 text-slate-900"><%= job.title %></td>
+          <td class="px-4 py-3"><%= job.customer.name %></td>
+          <td class="px-4 py-3"><%= job.status.titleize %></td>
+          <td class="px-4 py-3 text-right">
+            <%= link_to "View", job_path(job), class: "text-sm font-semibold text-slate-700 hover:text-slate-900" %>
+            <%= link_to "Edit", edit_job_path(job), class: "ml-3 text-sm font-semibold text-slate-500 hover:text-slate-700" %>
+          </td>
         </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100 text-slate-600">
-        <% @jobs.each do |job| %>
-          <tr>
-            <td class="px-4 py-3 text-slate-900"><%= job.title %></td>
-            <td class="px-4 py-3"><%= job.customer.name %></td>
-            <td class="px-4 py-3"><%= job.status.titleize %></td>
-            <td class="px-4 py-3 text-right">
-              <%= link_to "View", job_path(job), class: "text-sm font-semibold text-slate-700 hover:text-slate-900" %>
-            </td>
-          </tr>
-        <% end %>
-        <% if @jobs.empty? %>
+      <% end %>
+      <% if @jobs.empty? %>
           <tr>
             <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="4">No jobs yet.</td>
           </tr>
         <% end %>
       </tbody>
     </table>
+    </div>
   </div>
 </div>

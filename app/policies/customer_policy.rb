@@ -19,6 +19,14 @@ class CustomerPolicy < ApplicationPolicy
     manage?
   end
 
+  def archive?
+    manage?
+  end
+
+  def restore?
+    manage?
+  end
+
   private
 
   def manage?

@@ -1,5 +1,9 @@
-<% content_for :page_title, "New customer" %>
+<% if turbo_frame_request? %>
+  <%= render "modal" %>
+<% else %>
+  <% content_for :page_title, "New customer" %>
 
-<div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-  <%= render "form", customer: @customer %>
-</div>
+  <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <%= render "form", customer: @customer %>
+  </div>
+<% end %>

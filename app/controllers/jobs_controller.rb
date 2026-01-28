@@ -1,6 +1,6 @@
 class JobsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_job, only: %i[show add_timesheets_to_invoice add_materials_to_invoice]
+  before_action :set_job, only: %i[show edit update destroy add_timesheets_to_invoice add_materials_to_invoice]
 
   def index
     authorize Job
@@ -16,6 +16,47 @@ class JobsController < ApplicationController
 
     @materials = policy_scope(MaterialPurchase).where(job: @job).order(purchased_on: :desc)
     @unbilled_materials = @materials.left_joins(:invoice_line_item).where(invoice_line_items: { id: nil })
+  end
+
+  def new
+    @job = Job.new(account: current_account)
+    authorize @job
+    load_form_collections
+  end
+
+  def create
+    @job = Job.new(job_params)
+    @job.account = current_account
+    authorize @job
+
+    if @job.save
+      redirect_to job_path(@job), notice: "Job created."
+    else
+      load_form_collections
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    authorize @job
+    load_form_collections
+  end
+
+  def update
+    authorize @job
+
+    if @job.update(job_params)
+      redirect_to job_path(@job), notice: "Job updated."
+    else
+      load_form_collections
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    authorize @job
+    @job.destroy
+    redirect_to jobs_path, notice: "Job deleted."
   end
 
   def add_timesheets_to_invoice
@@ -102,6 +143,14 @@ class JobsController < ApplicationController
 
   def set_job
     @job = policy_scope(Job).find(params[:id])
+  end
+
+  def job_params
+    params.require(:job).permit(:customer_id, :title, :description, :site_address, :status)
+  end
+
+  def load_form_collections
+    @customers = policy_scope(Customer).active.order(:name)
   end
 
   def find_or_create_invoice

@@ -31,9 +31,25 @@ class CustomersController < ApplicationController
     authorize @customer
 
     if @customer.save
-      redirect_to customer_path(@customer), notice: "Customer created."
+      if turbo_frame_request?
+        @customers = policy_scope(Customer).active.order(:name)
+        render turbo_stream: [
+          turbo_stream.replace(
+            "job_customer_select",
+            partial: "jobs/customer_select",
+            locals: { customers: @customers, selected_customer_id: @customer.id }
+          ),
+          turbo_stream.replace("modal", "")
+        ]
+      else
+        redirect_to customer_path(@customer), notice: "Customer created."
+      end
     else
-      render :new, status: :unprocessable_entity
+      if turbo_frame_request?
+        render :new, status: :unprocessable_entity
+      else
+        render :new, status: :unprocessable_entity
+      end
     end
   end
 
