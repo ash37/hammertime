@@ -1,0 +1,54 @@
+<% content_for :page_title, @customer.name %>
+
+<div class="space-y-6">
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Customer</p>
+    <h2 class="mt-2 text-xl font-semibold text-slate-900"><%= @customer.name %></h2>
+    <p class="mt-1 text-sm text-slate-600"><%= @customer.email.presence || "—" %></p>
+    <p class="mt-1 text-sm text-slate-600"><%= @customer.phone.presence || "—" %></p>
+    <p class="mt-2 text-sm text-slate-600 whitespace-pre-line"><%= @customer.billing_address.presence || "Address on file" %></p>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-wrap items-center gap-3">
+      <%= link_to "Edit", edit_customer_path(@customer), class: "rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
+      <% if @customer.archived? %>
+        <%= button_to "Restore", restore_customer_path(@customer), method: :patch, class: "rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
+      <% else %>
+        <%= button_to "Archive", archive_customer_path(@customer), method: :patch, class: "rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p class="text-sm font-semibold text-slate-900">Jobs</p>
+      <ul class="mt-4 space-y-2 text-sm text-slate-600">
+        <% @jobs.each do |job| %>
+          <li>
+            <%= link_to job.title, job_path(job), class: "font-medium text-slate-900 hover:underline" %>
+            <span class="ml-2 text-xs text-slate-400"><%= job.status.titleize %></span>
+          </li>
+        <% end %>
+        <% if @jobs.empty? %>
+          <li class="text-sm text-slate-500">No jobs yet.</li>
+        <% end %>
+      </ul>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p class="text-sm font-semibold text-slate-900">Invoices</p>
+      <ul class="mt-4 space-y-2 text-sm text-slate-600">
+        <% @invoices.each do |invoice| %>
+          <li>
+            <%= link_to "Invoice ##{invoice.invoice_number}", invoice_path(invoice), class: "font-medium text-slate-900 hover:underline" %>
+            <span class="ml-2 text-xs text-slate-400"><%= invoice.status.titleize %></span>
+          </li>
+        <% end %>
+        <% if @invoices.empty? %>
+          <li class="text-sm text-slate-500">No invoices yet.</li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</div>

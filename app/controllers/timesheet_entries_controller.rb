@@ -41,12 +41,11 @@ class TimesheetEntriesController < ApplicationController
   def new
     @timesheet_entry = TimesheetEntry.new(account: current_account, user: current_user)
     @timesheet_entry.job_id = params[:job_id] if params[:job_id].present?
+    @timesheet_entry.work_date ||= Date.current
     authorize @timesheet_entry
 
     @timesheet_entry.hourly_rate_cents ||= current_user.hourly_rate_cents || current_account&.default_hourly_rate_cents || 0
-    @duration_hours = (@timesheet_entry.minutes / 60)
-    @duration_minutes = (@timesheet_entry.minutes % 60)
-    @hourly_rate_dollars = (@timesheet_entry.hourly_rate_cents.to_f / 100)
+    build_form_state(@timesheet_entry)
 
     load_form_collections
   end
@@ -64,6 +63,7 @@ class TimesheetEntriesController < ApplicationController
     if @timesheet_entry.save
       redirect_to timesheet_entries_path, notice: "Timesheet entry created."
     else
+      build_form_state(@timesheet_entry)
       load_form_collections
       render :new, status: :unprocessable_entity
     end
@@ -71,9 +71,7 @@ class TimesheetEntriesController < ApplicationController
 
   def edit
     authorize @timesheet_entry
-    @duration_hours = (@timesheet_entry.minutes / 60)
-    @duration_minutes = (@timesheet_entry.minutes % 60)
-    @hourly_rate_dollars = (@timesheet_entry.hourly_rate_cents.to_f / 100)
+    build_form_state(@timesheet_entry)
     load_form_collections
   end
 
@@ -86,6 +84,7 @@ class TimesheetEntriesController < ApplicationController
     if @timesheet_entry.save
       redirect_to timesheet_entries_path, notice: "Timesheet entry updated."
     else
+      build_form_state(@timesheet_entry)
       load_form_collections
       render :edit, status: :unprocessable_entity
     end
@@ -98,9 +97,10 @@ class TimesheetEntriesController < ApplicationController
   end
 
   def timesheet_entry_params
+    form_params = timesheet_entry_form_params
     allowed = [ :job_id, :work_date, :notes ]
     allowed << :user_id if user_assignable?
-    params.require(:timesheet_entry).permit(allowed)
+    form_params.slice(*allowed)
   end
 
   def user_assignable?
@@ -108,16 +108,25 @@ class TimesheetEntriesController < ApplicationController
   end
 
   def apply_duration(entry)
-    hours = params.dig(:timesheet_entry, :duration_hours).to_i
-    minutes = params.dig(:timesheet_entry, :duration_minutes).to_i
+    hours = duration_params[:duration_hours].to_i
+    minutes = duration_params[:duration_minutes].to_i
     entry.minutes = (hours * 60) + minutes
   end
 
   def apply_rate(entry)
-    rate_value = params.dig(:timesheet_entry, :hourly_rate_dollars)
+    rate_value = duration_params[:hourly_rate_dollars]
     return if rate_value.blank?
 
     entry.hourly_rate_cents = (rate_value.to_f * 100).round
+  end
+
+  def duration_params
+    timesheet_entry_form_params.slice(:duration_hours, :duration_minutes, :hourly_rate_dollars)
+  end
+
+  def timesheet_entry_form_params
+    @timesheet_entry_form_params ||= params.require(:timesheet_entry)
+      .permit(:job_id, :user_id, :work_date, :notes, :duration_hours, :duration_minutes, :hourly_rate_dollars)
   end
 
   def load_form_collections
@@ -131,5 +140,11 @@ class TimesheetEntriesController < ApplicationController
     Date.parse(value)
   rescue ArgumentError
     nil
+  end
+
+  def build_form_state(entry)
+    @duration_hours = (entry.minutes / 60)
+    @duration_minutes = (entry.minutes % 60)
+    @hourly_rate_dollars = (entry.hourly_rate_cents.to_f / 100)
   end
 end

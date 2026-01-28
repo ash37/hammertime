@@ -1,4 +1,14 @@
 <%= form_with model: timesheet_entry, class: "space-y-6", data: { controller: "timesheet-totals" } do |form| %>
+  <% if timesheet_entry.errors.any? %>
+    <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+      <p class="font-semibold">Please fix the following:</p>
+      <ul class="mt-2 list-disc pl-5">
+        <% timesheet_entry.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
   <div class="grid gap-6 md:grid-cols-2">
     <div>
       <%= form.label :job_id, "Job", class: "text-sm font-medium text-slate-700" %>

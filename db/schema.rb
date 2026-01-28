@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_28_000007) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_28_000008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -33,8 +33,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_28_000007) do
     t.text "billing_address"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "archived_at"
     t.index ["account_id", "email"], name: "index_customers_on_account_id_and_email"
     t.index ["account_id"], name: "index_customers_on_account_id"
+    t.index ["archived_at"], name: "index_customers_on_archived_at"
   end
 
   create_table "invoice_line_items", force: :cascade do |t|

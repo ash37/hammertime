@@ -43,6 +43,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :customers do
+    member do
+      patch :archive
+      patch :restore
+    end
+  end
+
   resources :users do
     member do
       post :invite
