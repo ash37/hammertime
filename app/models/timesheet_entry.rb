@@ -4,6 +4,7 @@ class TimesheetEntry < ApplicationRecord
   belongs_to :user
   belongs_to :job, optional: true
   has_one :invoice_line_item, as: :source, dependent: :nullify
+  has_many :audit_logs, class_name: "TimesheetAuditLog", dependent: :destroy
 
   enum :status, { draft: 0, unbilled: 1 }, default: :unbilled
 
@@ -36,7 +37,7 @@ class TimesheetEntry < ApplicationRecord
       next unless roster_entry&.total_minutes.to_i.positive?
       next if where(user: user, work_date: date).exists?
 
-      create!(
+      entry = create!(
         account: user.account,
         user: user,
         job: job,
@@ -44,6 +45,13 @@ class TimesheetEntry < ApplicationRecord
         minutes: roster_entry.total_minutes,
         hourly_rate_cents: user.default_billing_rate_cents,
         status: :draft
+      )
+
+      TimesheetAuditLog.create!(
+        account: user.account,
+        timesheet_entry: entry,
+        action: "draft_created",
+        details: "Draft created from roster template."
       )
 
       created += 1

@@ -1,6 +1,6 @@
 class TimesheetEntriesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_timesheet_entry, only: %i[edit update approve destroy]
+  before_action :set_timesheet_entry, only: %i[show edit update approve destroy]
 
   def index
     authorize TimesheetEntry
@@ -40,6 +40,11 @@ class TimesheetEntriesController < ApplicationController
     @timesheet_entries = scope.order(work_date: :desc, created_at: :desc)
   end
 
+  def show
+    authorize @timesheet_entry
+    @audit_logs = @timesheet_entry.audit_logs.includes(:user).order(created_at: :desc)
+  end
+
   def new
     @timesheet_entry = TimesheetEntry.new(account: current_account, user: current_user)
     @timesheet_entry.job_id = params[:job_id] if params[:job_id].present?
@@ -62,6 +67,7 @@ class TimesheetEntriesController < ApplicationController
     authorize @timesheet_entry
 
     if @timesheet_entry.save
+      log_audit(@timesheet_entry, "created", "Timesheet created.")
       redirect_to timesheet_entries_path, notice: "Timesheet entry created."
     else
       build_form_state(@timesheet_entry)
@@ -83,6 +89,7 @@ class TimesheetEntriesController < ApplicationController
     apply_rates(@timesheet_entry)
 
     if @timesheet_entry.save
+      log_audit(@timesheet_entry, "updated", update_details(@timesheet_entry))
       redirect_to timesheet_entries_path, notice: "Timesheet entry updated."
     else
       build_form_state(@timesheet_entry)
@@ -93,6 +100,7 @@ class TimesheetEntriesController < ApplicationController
 
   def destroy
     authorize @timesheet_entry
+    log_audit(@timesheet_entry, "deleted", "Timesheet deleted.")
     @timesheet_entry.destroy
     redirect_to timesheet_entries_path, notice: "Timesheet entry deleted."
   end
@@ -110,7 +118,9 @@ class TimesheetEntriesController < ApplicationController
       return
     end
 
+    previous_status = @timesheet_entry.status
     @timesheet_entry.update!(status: :unbilled)
+    log_audit(@timesheet_entry, "status_changed", "Status changed from #{previous_status.titleize} to Unbilled.")
     redirect_to timesheet_entries_path, notice: "Timesheet approved."
   end
 
@@ -186,6 +196,32 @@ class TimesheetEntriesController < ApplicationController
     return if job_id.blank?
 
     policy_scope(Job).find(job_id)
+  end
+
+  def log_audit(entry, action, details = nil)
+    TimesheetAuditLog.create!(
+      account: current_account,
+      timesheet_entry: entry,
+      user: current_user,
+      action: action,
+      details: details
+    )
+  end
+
+  def update_details(entry)
+    changes = entry.saved_changes.except("updated_at")
+    return "Timesheet updated." if changes.empty?
+
+    labels = {
+      "job_id" => "Job",
+      "user_id" => "User",
+      "work_date" => "Work date",
+      "minutes" => "Duration",
+      "notes" => "Notes",
+      "hourly_rate_cents" => "Billing rate"
+    }
+    fields = changes.keys.map { |key| labels[key] || key.humanize }.join(", ")
+    "Updated fields: #{fields}."
   end
 
   def build_form_state(entry)

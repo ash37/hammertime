@@ -111,6 +111,14 @@ class InvoicesController < ApplicationController
         quantity: purchase.quantity,
         unit_price_cents: purchase.sell_unit_price_cents
       )
+
+      MaterialPurchaseAuditLog.create!(
+        account: current_account,
+        material_purchase: purchase,
+        user: current_user,
+        action: "billed",
+        details: "Added to invoice ##{@invoice.invoice_number}."
+      )
     end
 
     load_invoice_context

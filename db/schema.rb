@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_29_000006) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_29_000008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -88,6 +88,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_000006) do
     t.index ["customer_id"], name: "index_jobs_on_customer_id"
   end
 
+  create_table "material_purchase_audit_logs", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "material_purchase_id", null: false
+    t.bigint "user_id"
+    t.string "action", null: false
+    t.text "details"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_material_purchase_audit_logs_on_account_id"
+    t.index ["material_purchase_id"], name: "index_material_purchase_audit_logs_on_material_purchase_id"
+    t.index ["user_id"], name: "index_material_purchase_audit_logs_on_user_id"
+  end
+
   create_table "material_purchases", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.bigint "job_id", null: false
@@ -117,6 +130,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_000006) do
     t.index ["account_id"], name: "index_roster_entries_on_account_id"
     t.index ["user_id", "day_of_week"], name: "index_roster_entries_on_user_id_and_day_of_week", unique: true
     t.index ["user_id"], name: "index_roster_entries_on_user_id"
+  end
+
+  create_table "timesheet_audit_logs", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "timesheet_entry_id", null: false
+    t.bigint "user_id"
+    t.string "action", null: false
+    t.text "details"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_timesheet_audit_logs_on_account_id"
+    t.index ["timesheet_entry_id"], name: "index_timesheet_audit_logs_on_timesheet_entry_id"
+    t.index ["user_id"], name: "index_timesheet_audit_logs_on_user_id"
   end
 
   create_table "timesheet_entries", force: :cascade do |t|
@@ -169,10 +195,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_000006) do
   add_foreign_key "invoices", "jobs"
   add_foreign_key "jobs", "accounts"
   add_foreign_key "jobs", "customers"
+  add_foreign_key "material_purchase_audit_logs", "accounts"
+  add_foreign_key "material_purchase_audit_logs", "material_purchases"
+  add_foreign_key "material_purchase_audit_logs", "users"
   add_foreign_key "material_purchases", "accounts"
   add_foreign_key "material_purchases", "jobs"
   add_foreign_key "roster_entries", "accounts"
   add_foreign_key "roster_entries", "users"
+  add_foreign_key "timesheet_audit_logs", "accounts"
+  add_foreign_key "timesheet_audit_logs", "timesheet_entries"
+  add_foreign_key "timesheet_audit_logs", "users"
   add_foreign_key "timesheet_entries", "accounts"
   add_foreign_key "timesheet_entries", "jobs"
   add_foreign_key "timesheet_entries", "users"

@@ -4,7 +4,7 @@ class TimesheetEntryPolicy < ApplicationPolicy
   end
 
   def show?
-    same_account? && (manage_all? || owns_record?)
+    same_account? && manage_all?
   end
 
   def create?
@@ -12,11 +12,11 @@ class TimesheetEntryPolicy < ApplicationPolicy
   end
 
   def update?
-    same_account? && (manage_all? || owns_record?)
+    same_account? && manage_all?
   end
 
   def destroy?
-    same_account? && (manage_all? || owns_record?)
+    same_account? && manage_all?
   end
 
   def approve?

@@ -1,10 +1,10 @@
 class JobPolicy < ApplicationPolicy
   def index?
-    user.present?
+    manage?
   end
 
   def show?
-    user.present? && same_account?
+    manage?
   end
 
   def create?

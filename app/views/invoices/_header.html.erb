@@ -4,7 +4,14 @@
     <h1 class="mt-2 text-2xl font-semibold text-slate-900">##<%= invoice.invoice_number %></h1>
     <p class="mt-1 text-sm text-slate-500"><%= invoice.customer.name %></p>
     <% if invoice.job %>
-      <p class="text-sm text-slate-500">Job: <%= link_to invoice.job.title, job_path(invoice.job), class: "underline" %></p>
+      <p class="text-sm text-slate-500">
+        Job:
+        <% if current_user&.owner? || current_user&.admin? %>
+          <%= link_to invoice.job.title, job_path(invoice.job), class: "underline" %>
+        <% else %>
+          <span><%= invoice.job.title %></span>
+        <% end %>
+      </p>
     <% end %>
   </div>
   <div class="flex items-center gap-3">

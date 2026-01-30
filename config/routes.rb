@@ -29,7 +29,7 @@ Rails.application.routes.draw do
     post :add_materials_to_invoice, on: :member
   end
 
-  resources :timesheet_entries, only: [ :index, :new, :create, :edit, :update, :destroy ] do
+  resources :timesheet_entries, only: [ :index, :show, :new, :create, :edit, :update, :destroy ] do
     collection do
       get :draft_payroll_preview
       post :draft_payroll
@@ -38,7 +38,7 @@ Rails.application.routes.draw do
       patch :approve
     end
   end
-  resources :material_purchases, only: [ :index, :new, :create, :edit, :update ]
+  resources :material_purchases, only: [ :index, :show, :new, :create, :edit, :update ]
 
   resources :invoices, only: [ :index, :show, :new, :create, :edit, :update ] do
     member do

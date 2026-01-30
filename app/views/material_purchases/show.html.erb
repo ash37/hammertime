@@ -1,0 +1,86 @@
+<% content_for :page_title, "Material" %>
+
+<div class="space-y-6">
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Material</p>
+        <h2 class="mt-2 text-xl font-semibold text-slate-900">
+          <%= @material_purchase.description.presence || @material_purchase.supplier_name %>
+        </h2>
+        <p class="mt-1 text-sm text-slate-500"><%= @material_purchase.job.title %></p>
+        <p class="mt-1 text-sm text-slate-500"><%= @material_purchase.purchased_on.strftime("%a %b %d").upcase %></p>
+      </div>
+      <div class="text-right">
+        <% if @material_purchase.billed? %>
+          <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Billed</span>
+        <% else %>
+          <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Unbilled</span>
+        <% end %>
+        <p class="mt-3 text-sm text-slate-500"><%= number_to_currency(@material_purchase.total_sell_cents / 100.0) %></p>
+        <p class="text-xs text-slate-400"><%= @material_purchase.quantity %> units</p>
+      </div>
+    </div>
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <%= link_to "Back to materials", material_purchases_path, class: "text-sm font-semibold text-slate-600 hover:text-slate-900" %>
+      <%= link_to "Edit", edit_material_purchase_path(@material_purchase), class: "text-sm font-semibold text-slate-600 hover:text-slate-900" %>
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p class="text-sm font-semibold text-slate-900">Details</p>
+      <div class="mt-4 space-y-2 text-sm text-slate-600">
+        <div class="flex items-center justify-between">
+          <span>Purchased on</span>
+          <span class="font-semibold text-slate-900"><%= @material_purchase.purchased_on.strftime("%a %b %d, %Y") %></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Supplier</span>
+          <span class="font-semibold text-slate-900"><%= @material_purchase.supplier_name %></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Quantity</span>
+          <span class="font-semibold text-slate-900"><%= @material_purchase.quantity %></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Unit cost</span>
+          <span class="font-semibold text-slate-900"><%= number_to_currency(@material_purchase.unit_cost_cents / 100.0) %></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Markup</span>
+          <span class="font-semibold text-slate-900"><%= @material_purchase.markup_percent %>%</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Sell unit price</span>
+          <span class="font-semibold text-slate-900"><%= number_to_currency(@material_purchase.sell_unit_price_cents / 100.0) %></span>
+        </div>
+      </div>
+      <% if @material_purchase.description.present? %>
+        <div class="mt-4 border-t border-slate-100 pt-4 text-sm text-slate-600">
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Description</p>
+          <p class="mt-2 whitespace-pre-line text-slate-700"><%= @material_purchase.description %></p>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p class="text-sm font-semibold text-slate-900">Audit trail</p>
+      <div class="mt-4 space-y-4 text-sm text-slate-600">
+        <% @audit_logs.each do |log| %>
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="font-semibold text-slate-900"><%= log.action.humanize %></p>
+              <p class="mt-1 text-xs text-slate-500"><%= log.details.presence || "Material updated." %></p>
+              <p class="mt-1 text-xs text-slate-400"><%= log.user&.display_name || "System" %></p>
+            </div>
+            <p class="text-xs text-slate-400"><%= l(log.created_at, format: :short) %></p>
+          </div>
+        <% end %>
+        <% if @audit_logs.empty? %>
+          <p class="text-xs text-slate-400">No audit activity yet.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

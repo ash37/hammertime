@@ -1,6 +1,6 @@
 class MaterialPurchasesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_material_purchase, only: %i[edit update]
+  before_action :set_material_purchase, only: %i[show edit update]
 
   def index
     authorize MaterialPurchase
@@ -37,6 +37,11 @@ class MaterialPurchasesController < ApplicationController
     @material_purchases = scope.order(purchased_on: :desc, created_at: :desc)
   end
 
+  def show
+    authorize @material_purchase
+    @audit_logs = @material_purchase.audit_logs.includes(:user).order(created_at: :desc)
+  end
+
   def new
     @material_purchase = MaterialPurchase.new(account: current_account)
     @material_purchase.job_id = params[:job_id] if params[:job_id].present?
@@ -57,6 +62,7 @@ class MaterialPurchasesController < ApplicationController
     authorize @material_purchase
 
     if @material_purchase.save
+      log_audit(@material_purchase, "created", "Material purchase created.")
       redirect_to material_purchases_path, notice: "Material purchase created."
     else
       load_form_collections
@@ -76,6 +82,7 @@ class MaterialPurchasesController < ApplicationController
     apply_unit_cost(@material_purchase)
 
     if @material_purchase.save
+      log_audit(@material_purchase, "updated", update_details(@material_purchase))
       redirect_to material_purchases_path, notice: "Material purchase updated."
     else
       load_form_collections
@@ -110,5 +117,32 @@ class MaterialPurchasesController < ApplicationController
     Date.parse(value)
   rescue ArgumentError
     nil
+  end
+
+  def log_audit(purchase, action, details = nil)
+    MaterialPurchaseAuditLog.create!(
+      account: current_account,
+      material_purchase: purchase,
+      user: current_user,
+      action: action,
+      details: details
+    )
+  end
+
+  def update_details(purchase)
+    changes = purchase.saved_changes.except("updated_at")
+    return "Material purchase updated." if changes.empty?
+
+    labels = {
+      "job_id" => "Job",
+      "purchased_on" => "Purchased on",
+      "supplier_name" => "Supplier",
+      "description" => "Description",
+      "quantity" => "Quantity",
+      "unit_cost_cents" => "Unit cost",
+      "markup_percent" => "Markup"
+    }
+    fields = changes.keys.map { |key| labels[key] || key.humanize }.join(", ")
+    "Updated fields: #{fields}."
   end
 end

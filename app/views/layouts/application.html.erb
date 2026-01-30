@@ -33,9 +33,11 @@
               <%= heroicon_tag "home", variant: :solid, size: 20, class: "h-5 w-5 text-slate-900" %>
               Dashboard
             <% end %>
-            <%= link_to jobs_path, class: "flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100" do %>
-              <%= heroicon_tag "briefcase", variant: :outline, size: 20, class: "h-5 w-5 text-slate-500" %>
-              Jobs
+            <% if current_user&.owner? || current_user&.admin? %>
+              <%= link_to jobs_path, class: "flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100" do %>
+                <%= heroicon_tag "briefcase", variant: :outline, size: 20, class: "h-5 w-5 text-slate-500" %>
+                Jobs
+              <% end %>
             <% end %>
             <%= link_to timesheet_entries_path, class: "flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100" do %>
               <%= heroicon_tag "clock", variant: :outline, size: 20, class: "h-5 w-5 text-slate-500" %>
@@ -97,9 +99,11 @@
                   <%= heroicon_tag "home", variant: :solid, size: 18, class: "h-5 w-5 text-slate-500" %>
                   Dashboard
                 <% end %>
-                <%= link_to jobs_path, class: "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100" do %>
-                  <%= heroicon_tag "briefcase", variant: :outline, size: 18, class: "h-5 w-5 text-slate-500" %>
-                  Jobs
+                <% if current_user&.owner? || current_user&.admin? %>
+                  <%= link_to jobs_path, class: "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100" do %>
+                    <%= heroicon_tag "briefcase", variant: :outline, size: 18, class: "h-5 w-5 text-slate-500" %>
+                    Jobs
+                  <% end %>
                 <% end %>
                 <%= link_to timesheet_entries_path, class: "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100" do %>
                   <%= heroicon_tag "clock", variant: :outline, size: 18, class: "h-5 w-5 text-slate-500" %>
@@ -165,6 +169,9 @@
     <% else %>
       <main class="flex min-h-screen items-center justify-center px-6 py-10">
         <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+          <div class="mb-6 flex justify-center">
+            <%= image_tag "hammertime logo.png", class: "h-16 w-auto object-contain", alt: "Hammertime" %>
+          </div>
           <%= yield %>
         </div>
       </main>

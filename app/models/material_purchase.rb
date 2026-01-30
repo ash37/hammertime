@@ -3,6 +3,7 @@ class MaterialPurchase < ApplicationRecord
 
   belongs_to :job
   has_one :invoice_line_item, as: :source, dependent: :nullify
+  has_many :audit_logs, class_name: "MaterialPurchaseAuditLog", dependent: :destroy
 
   validates :purchased_on, presence: true
   validates :supplier_name, presence: true
