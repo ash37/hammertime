@@ -1,8 +1,10 @@
 <% content_for :page_title, "Materials" %>
 
 <div class="space-y-6">
-  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-    <%= form_with url: material_purchases_path, method: :get, class: "grid gap-4 md:grid-cols-5" do %>
+  <% admin_view = current_user&.owner? || current_user&.admin? %>
+  <% if admin_view %>
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <%= form_with url: material_purchases_path, method: :get, class: "grid gap-4 md:grid-cols-5" do %>
       <div>
         <label class="text-xs font-semibold uppercase tracking-wide text-slate-400">From</label>
         <%= date_field_tag :from, params[:from], class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
@@ -23,13 +25,14 @@
         <label class="text-xs font-semibold uppercase tracking-wide text-slate-400">Billed</label>
         <%= select_tag :billed, options_for_select([["All", ""], ["Unbilled", "unbilled"], ["Billed", "billed"]], params[:billed]), class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
       </div>
-      <div class="md:col-span-5 flex items-center gap-3">
-        <%= submit_tag "Filter", class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
-        <%= link_to "Reset", material_purchases_path, class: "text-sm text-slate-500 hover:text-slate-700" %>
-        <%= link_to "New material", new_material_purchase_path, class: "ml-auto rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
-      </div>
-    <% end %>
-  </div>
+        <div class="md:col-span-5 flex items-center gap-3">
+          <%= submit_tag "Filter", class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+          <%= link_to "Reset", material_purchases_path, class: "text-sm text-slate-500 hover:text-slate-700" %>
+          <%= link_to "New material", new_material_purchase_path, class: "ml-auto rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
 
   <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="overflow-hidden rounded-xl border border-slate-100">
@@ -42,9 +45,15 @@
             <th class="px-4 py-3 text-left">Description</th>
             <th class="px-4 py-3 text-right">Qty</th>
             <th class="px-4 py-3 text-right">Unit cost</th>
-            <th class="px-4 py-3 text-right">Sell price</th>
-            <th class="px-4 py-3 text-right">Total</th>
-            <th class="px-4 py-3 text-right">Status</th>
+            <% if admin_view %>
+              <th class="px-4 py-3 text-right">Sell price</th>
+            <% end %>
+            <% if admin_view %>
+              <th class="px-4 py-3 text-right">Total</th>
+            <% end %>
+            <% if admin_view %>
+              <th class="px-4 py-3 text-right">Status</th>
+            <% end %>
             <th class="px-4 py-3"></th>
           </tr>
         </thead>
@@ -85,25 +94,31 @@
                   <%= number_to_currency(purchase.unit_cost_cents / 100.0) %>
                 <% end %>
               </td>
-              <td class="px-4 py-3 text-right">
-                <%= link_to material_purchase_path(purchase), class: "block text-right text-slate-700" do %>
-                  <%= number_to_currency(purchase.sell_unit_price_cents / 100.0) %>
-                <% end %>
-              </td>
-              <td class="px-4 py-3 text-right font-medium text-slate-900">
-                <%= link_to material_purchase_path(purchase), class: "block text-right" do %>
-                  <%= number_to_currency(purchase.total_sell_cents / 100.0) %>
-                <% end %>
-              </td>
-              <td class="px-4 py-3 text-right">
-                <%= link_to material_purchase_path(purchase), class: "inline-block" do %>
-                  <% if purchase.billed? %>
-                    <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">Billed</span>
-                  <% else %>
-                    <span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Unbilled</span>
+              <% if admin_view %>
+                <td class="px-4 py-3 text-right">
+                  <%= link_to material_purchase_path(purchase), class: "block text-right text-slate-700" do %>
+                    <%= number_to_currency(purchase.sell_unit_price_cents / 100.0) %>
                   <% end %>
-                <% end %>
-              </td>
+                </td>
+              <% end %>
+              <% if admin_view %>
+                <td class="px-4 py-3 text-right font-medium text-slate-900">
+                  <%= link_to material_purchase_path(purchase), class: "block text-right" do %>
+                    <%= number_to_currency(purchase.total_sell_cents / 100.0) %>
+                  <% end %>
+                </td>
+              <% end %>
+              <% if admin_view %>
+                <td class="px-4 py-3 text-right">
+                  <%= link_to material_purchase_path(purchase), class: "inline-block" do %>
+                    <% if purchase.billed? %>
+                      <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">Billed</span>
+                    <% else %>
+                      <span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Unbilled</span>
+                    <% end %>
+                  <% end %>
+                </td>
+              <% end %>
               <td class="px-4 py-3 text-right">
                 <%= link_to "Edit", edit_material_purchase_path(purchase), class: "text-sm font-semibold text-slate-500 hover:text-slate-700" %>
               </td>
@@ -111,7 +126,7 @@
           <% end %>
           <% if @material_purchases.empty? %>
             <tr>
-              <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="10">No material purchases found.</td>
+              <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="<%= admin_view ? 10 : 7 %>">No material purchases found.</td>
             </tr>
           <% end %>
         </tbody>

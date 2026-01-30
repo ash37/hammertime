@@ -21,8 +21,12 @@ export default class extends Controller {
     const sellUnit = unitCost * (1 + markup / 100)
     const total = sellUnit * quantity
 
-    this.sellUnitTarget.textContent = this.formatCurrency(sellUnit)
-    this.totalTarget.textContent = this.formatCurrency(total)
+    if (this.hasSellUnitTarget) {
+      this.sellUnitTarget.textContent = this.formatCurrency(sellUnit)
+    }
+    if (this.hasTotalTarget) {
+      this.totalTarget.textContent = this.formatCurrency(total)
+    }
   }
 
   numberValue(value) {

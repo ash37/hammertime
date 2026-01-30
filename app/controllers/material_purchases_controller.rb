@@ -46,6 +46,9 @@ class MaterialPurchasesController < ApplicationController
     @material_purchase = MaterialPurchase.new(account: current_account)
     @material_purchase.job_id = params[:job_id] if params[:job_id].present?
     @material_purchase.purchased_on ||= Date.current
+    if current_user&.staff?
+      @material_purchase.quantity = 1 if @material_purchase.quantity.to_f <= 0
+    end
     authorize @material_purchase
 
     @unit_cost_dollars = (@material_purchase.unit_cost_cents.to_f / 100)
@@ -56,6 +59,8 @@ class MaterialPurchasesController < ApplicationController
   def create
     @material_purchase = MaterialPurchase.new(material_purchase_params)
     @material_purchase.account = current_account
+    @material_purchase.user = current_user
+    apply_staff_defaults(@material_purchase)
 
     apply_unit_cost(@material_purchase)
 
@@ -79,6 +84,8 @@ class MaterialPurchasesController < ApplicationController
   def update
     authorize @material_purchase
     @material_purchase.assign_attributes(material_purchase_params)
+    @material_purchase.user ||= current_user
+    apply_staff_defaults(@material_purchase)
     apply_unit_cost(@material_purchase)
 
     if @material_purchase.save
@@ -97,7 +104,11 @@ class MaterialPurchasesController < ApplicationController
   end
 
   def material_purchase_params
-    params.require(:material_purchase).permit(:job_id, :purchased_on, :supplier_name, :description, :quantity, :markup_percent)
+    allowed = [ :job_id, :supplier_name, :description ]
+    if current_user&.owner? || current_user&.admin?
+      allowed += [ :purchased_on, :quantity, :markup_percent ]
+    end
+    params.require(:material_purchase).permit(*allowed)
   end
 
   def apply_unit_cost(purchase)
@@ -105,6 +116,16 @@ class MaterialPurchasesController < ApplicationController
     return if cost_value.blank?
 
     purchase.unit_cost_cents = (cost_value.to_f * 100).round
+  end
+
+  def apply_staff_defaults(purchase)
+    return unless current_user&.staff?
+
+    purchase.purchased_on ||= Date.current
+    purchase.quantity = 1 if purchase.quantity.to_f <= 0
+    if purchase.markup_percent.blank? || purchase.will_save_change_to_job_id?
+      purchase.markup_percent = purchase.job&.default_material_markup_percent.to_f
+    end
   end
 
   def load_form_collections

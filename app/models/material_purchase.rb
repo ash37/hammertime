@@ -2,6 +2,7 @@ class MaterialPurchase < ApplicationRecord
   include AccountOwned
 
   belongs_to :job
+  belongs_to :user, optional: true
   has_one :invoice_line_item, as: :source, dependent: :nullify
   has_many :audit_logs, class_name: "MaterialPurchaseAuditLog", dependent: :destroy
 

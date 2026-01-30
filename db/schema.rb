@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_29_000008) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_29_000009) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -112,9 +112,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_000008) do
     t.decimal "markup_percent", precision: 5, scale: 2, default: "0.0", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
     t.index ["account_id", "purchased_on"], name: "index_material_purchases_on_account_id_and_purchased_on"
     t.index ["account_id"], name: "index_material_purchases_on_account_id"
     t.index ["job_id"], name: "index_material_purchases_on_job_id"
+    t.index ["user_id"], name: "index_material_purchases_on_user_id"
   end
 
   create_table "roster_entries", force: :cascade do |t|
@@ -200,6 +202,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_000008) do
   add_foreign_key "material_purchase_audit_logs", "users"
   add_foreign_key "material_purchases", "accounts"
   add_foreign_key "material_purchases", "jobs"
+  add_foreign_key "material_purchases", "users"
   add_foreign_key "roster_entries", "accounts"
   add_foreign_key "roster_entries", "users"
   add_foreign_key "timesheet_audit_logs", "accounts"

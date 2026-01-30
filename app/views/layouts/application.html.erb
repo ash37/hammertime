@@ -25,7 +25,9 @@
         <aside class="hidden w-72 flex-col border-r border-slate-200 bg-white shadow-sm md:flex">
           <div class="flex items-center justify-between px-6 py-6">
             <div class="flex items-center">
-              <%= image_tag "hammertime logo.png", class: "h-10 w-auto object-contain", alt: "Hammertime" %>
+              <%= link_to authenticated_root_path do %>
+                <%= image_tag "hammertime logo.png", class: "h-10 w-auto object-contain", alt: "Hammertime" %>
+              <% end %>
             </div>
           </div>
           <nav class="flex-1 space-y-1 px-4">
@@ -44,7 +46,7 @@
               Timesheets
             <% end %>
             <%= link_to material_purchases_path, class: "flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100" do %>
-              <%= heroicon_tag "cube", variant: :outline, size: 20, class: "h-5 w-5 text-slate-500" %>
+              <%= heroicon_tag "wrench-screwdriver", variant: :outline, size: 20, class: "h-5 w-5 text-slate-500" %>
               Materials
             <% end %>
             <% if current_user&.owner? || current_user&.admin? %>
@@ -86,8 +88,9 @@
           <div class="md:hidden" data-controller="mobile-nav">
             <div class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 shadow-sm">
               <div class="flex items-center gap-3">
-                <%= image_tag "hammertime logo.png", class: "h-9 w-auto object-contain", alt: "Hammertime" %>
-                
+                <%= link_to authenticated_root_path do %>
+                  <%= image_tag "hammertime logo.png", class: "h-9 w-auto object-contain", alt: "Hammertime" %>
+                <% end %>
               </div>
               <button type="button" data-action="mobile-nav#toggle" class="rounded-lg border border-slate-200 p-2 text-slate-600">
                 <%= heroicon_tag "bars-3", variant: :outline, size: 18, class: "h-5 w-5" %>
@@ -110,7 +113,7 @@
                   Timesheets
                 <% end %>
                 <%= link_to material_purchases_path, class: "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100" do %>
-                  <%= heroicon_tag "cube", variant: :outline, size: 18, class: "h-5 w-5 text-slate-500" %>
+                  <%= heroicon_tag "wrench-screwdriver", variant: :outline, size: 18, class: "h-5 w-5 text-slate-500" %>
                   Materials
                 <% end %>
                 <% if current_user&.owner? || current_user&.admin? %>
@@ -151,7 +154,6 @@
           <header class="hidden items-center justify-between border-b border-slate-200 bg-white px-8 py-6 shadow-sm md:flex">
             <div>
               <h1 class="text-xl font-semibold text-slate-900"><%= content_for?(:page_title) ? yield(:page_title) : "Dashboard" %></h1>
-              <p class="text-xs text-slate-500">Keep tabs on jobs, hours, and invoices.</p>
             </div>
             <div class="flex items-center gap-4">
             </div>
