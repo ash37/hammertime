@@ -27,80 +27,185 @@
   <div class="grid gap-6 lg:grid-cols-2">
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-semibold text-slate-900">Recent timesheets</p>
-          <p class="text-xs text-slate-500">Last 5 entries</p>
+        <div class="flex items-center gap-2">
+          <p class="text-sm font-semibold text-slate-900">
+            <%= @timesheets_view == "recent" ? "Recent timesheets" : "Timesheets" %>
+          </p>
+          <% if @timesheets_view == "recent" %>
+            <%= link_to "View needing action",
+              url_for(request.query_parameters.merge(timesheets_view: "action", timesheets_page: 1)),
+              class: "text-xs font-semibold text-slate-500 hover:text-slate-700" %>
+          <% else %>
+            <%= link_to "View all",
+              url_for(request.query_parameters.merge(timesheets_view: "recent", timesheets_page: 1)),
+              class: "text-xs font-semibold text-slate-500 hover:text-slate-700" %>
+          <% end %>
         </div>
-        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Timesheets</span>
+        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          <%= @timesheets_view == "recent" ? "Recent" : "Needs action" %>
+        </span>
       </div>
       <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
         <table class="min-w-full divide-y divide-slate-100 text-sm">
-          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
-            <tr>
-              <th class="px-4 py-3 text-left">Date</th>
-              <th class="px-4 py-3 text-left">Job</th>
-              <th class="px-4 py-3 text-left">User</th>
-              <th class="px-4 py-3 text-right">Hours</th>
-              <th class="px-4 py-3 text-right">Total</th>
-            </tr>
-          </thead>
+          
           <tbody class="divide-y divide-slate-100 text-slate-600">
             <% @recent_timesheets.each do |entry| %>
               <tr>
-                <td class="px-4 py-3"><%= entry.work_date.strftime("%d %b") %></td>
-                <td class="px-4 py-3 text-slate-900"><%= entry.job.title %></td>
-                <td class="px-4 py-3"><%= entry.user.email %></td>
-                <td class="px-4 py-3 text-right"><%= entry.hours.round(2) %></td>
-                <td class="px-4 py-3 text-right font-medium text-slate-900"><%= number_to_currency(entry.total_cents / 100.0) %></td>
+                <td class="px-4 py-3">
+                  <div class="text-sm font-semibold text-slate-900"><%= entry.work_date.strftime("%d") %></div>
+                  <div class="text-xs uppercase tracking-wide text-slate-400"><%= entry.work_date.strftime("%b") %></div>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="font-semibold text-slate-900"><%= entry.job&.title || "Unassigned" %></div>
+                  <div class="text-xs text-slate-500"><%= entry.user.display_name %></div>
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <div class="font-semibold text-slate-900"><%= entry.hours.round(2) %>h</div>
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <div class="font-semibold text-slate-900"><%= number_to_currency(entry.total_cents / 100.0) %></div>
+                  <div class="mt-1">
+                    <% if entry.draft? %>
+                      <span class="rounded-full bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-700">Draft</span>
+                    <% elsif entry.billed? %>
+                      <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">Billed</span>
+                    <% else %>
+                      <span class="rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-500">Unbilled</span>
+                    <% end %>
+                  </div>
+                </td>
               </tr>
             <% end %>
             <% if @recent_timesheets.empty? %>
               <tr>
-                <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="5">No timesheets yet.</td>
+                <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="4">
+                  <div class="relative overflow-hidden rounded-xl border border-slate-100 bg-white px-6 py-8">
+                    <div class="pointer-events-none absolute inset-0">
+                     
+
+
+                      <span class="absolute left-4 top-3 h-3 w-3 rounded-full bg-orange-200"></span>
+                      <span class="absolute right-8 top-6 h-2.5 w-2.5 rounded-full bg-emerald-200"></span>
+                      <span class="absolute left-1/3 bottom-2 h-2 w-2 rounded-full bg-pink-200"></span>
+                      <span class="absolute right-1/4 top-12 h-3 w-3 rounded-full bg-rose-200"></span>
+                      <span class="absolute left-10 bottom-6 h-2.5 w-2.5 rounded-full bg-indigo-200"></span>
+                      <span class="absolute right-6 bottom-4 h-2 w-2 rounded-full bg-sky-200"></span>
+                      <span class="absolute left-1/2 top-2 h-3 w-3 rounded-full bg-teal-200"></span>
+
+
+
+                    </div>
+                    <span class="relative font-semibold text-slate-500">
+                      <%= @timesheets_view == "recent" ? "No timesheets yet." : "No timesheets needing action." %>
+                    </span>
+                  </div>
+                </td>
               </tr>
             <% end %>
           </tbody>
         </table>
       </div>
+      <% if @recent_timesheets.any? %>
+        <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+          <% if @timesheets_has_prev %>
+            <%= link_to "Previous", url_for(request.query_parameters.merge(timesheets_page: @timesheets_page - 1)), class: "font-semibold text-slate-600 hover:text-slate-900" %>
+          <% else %>
+            <span class="text-slate-300">Previous</span>
+          <% end %>
+          <span>Page <%= @timesheets_page %></span>
+          <% if @timesheets_has_next %>
+            <%= link_to "Next", url_for(request.query_parameters.merge(timesheets_page: @timesheets_page + 1)), class: "font-semibold text-slate-600 hover:text-slate-900" %>
+          <% else %>
+            <span class="text-slate-300">Next</span>
+          <% end %>
+        </div>
+      <% end %>
     </div>
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-semibold text-slate-900">Recent materials</p>
-          <p class="text-xs text-slate-500">Last 5 purchases</p>
+        <div class="flex items-center gap-2">
+          <p class="text-sm font-semibold text-slate-900">
+            <%= @materials_view == "recent" ? "Recent materials" : "Materials" %>
+          </p>
+          <% if @materials_view == "recent" %>
+            <%= link_to "View needing action",
+              url_for(request.query_parameters.merge(materials_view: "action", materials_page: 1)),
+              class: "text-xs font-semibold text-slate-500 hover:text-slate-700" %>
+          <% else %>
+            <%= link_to "View all",
+              url_for(request.query_parameters.merge(materials_view: "recent", materials_page: 1)),
+              class: "text-xs font-semibold text-slate-500 hover:text-slate-700" %>
+          <% end %>
         </div>
-        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Materials</span>
+        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          <%= @materials_view == "recent" ? "Recent" : "Needs action" %>
+        </span>
       </div>
       <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
         <table class="min-w-full divide-y divide-slate-100 text-sm">
-          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
-            <tr>
-              <th class="px-4 py-3 text-left">Date</th>
-              <th class="px-4 py-3 text-left">Job</th>
-              <th class="px-4 py-3 text-left">Supplier</th>
-              <th class="px-4 py-3 text-right">Qty</th>
-              <th class="px-4 py-3 text-right">Total</th>
-            </tr>
-          </thead>
+          
           <tbody class="divide-y divide-slate-100 text-slate-600">
             <% @recent_materials.each do |purchase| %>
               <tr>
-                <td class="px-4 py-3"><%= purchase.purchased_on.strftime("%d %b") %></td>
-                <td class="px-4 py-3 text-slate-900"><%= purchase.job.title %></td>
-                <td class="px-4 py-3"><%= purchase.supplier_name %></td>
-                <td class="px-4 py-3 text-right"><%= purchase.quantity.to_f %></td>
-                <td class="px-4 py-3 text-right font-medium text-slate-900"><%= number_to_currency(purchase.total_sell_cents / 100.0) %></td>
+                <td class="px-4 py-3">
+                  <div class="text-sm font-semibold text-slate-900"><%= purchase.purchased_on.strftime("%d") %></div>
+                  <div class="text-xs uppercase tracking-wide text-slate-400"><%= purchase.purchased_on.strftime("%b") %></div>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="font-semibold text-slate-900"><%= purchase.description.presence || purchase.supplier_name %></div>
+                  <div class="text-xs text-slate-500"><%= purchase.supplier_name %> • <%= purchase.job.title %></div>
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <div class="font-semibold text-slate-900"><%= number_to_currency(purchase.total_sell_cents / 100.0) %></div>
+                  <div class="mt-1">
+                    <% if purchase.billed? %>
+                      <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">Billed</span>
+                    <% else %>
+                      <span class="rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-500">Unbilled</span>
+                    <% end %>
+                  </div>
+                </td>
               </tr>
             <% end %>
             <% if @recent_materials.empty? %>
               <tr>
-                <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="5">No materials yet.</td>
+                <td class="px-4 py-6 text-center text-sm text-slate-500" colspan="3">
+                  <div class="relative overflow-hidden rounded-xl border border-slate-100 bg-white px-6 py-8">
+                    <div class="pointer-events-none absolute inset-0">
+                      <span class="absolute left-4 top-3 h-3 w-3 rounded-full bg-sky-200"></span>
+                      <span class="absolute right-8 top-6 h-2.5 w-2.5 rounded-full bg-emerald-200"></span>
+                      <span class="absolute left-1/3 top-2 h-2 w-2 rounded-full bg-amber-200"></span>
+                      <span class="absolute right-1/4 top-12 h-3 w-3 rounded-full bg-rose-200"></span>
+                      <span class="absolute left-10 bottom-6 h-2.5 w-2.5 rounded-full bg-indigo-200"></span>
+                      <span class="absolute right-6 bottom-4 h-2 w-2 rounded-full bg-orange-200"></span>
+                      <span class="absolute left-1/2 bottom-2 h-3 w-3 rounded-full bg-teal-200"></span>
+                    </div>
+                    <span class="relative font-semibold text-slate-500">
+                      <%= @materials_view == "recent" ? "No materials yet." : "No materials needing action." %>
+                    </span>
+                  </div>
+                </td>
               </tr>
             <% end %>
           </tbody>
         </table>
       </div>
+      <% if @recent_materials.any? %>
+        <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+          <% if @materials_has_prev %>
+            <%= link_to "Previous", url_for(request.query_parameters.merge(materials_page: @materials_page - 1)), class: "font-semibold text-slate-600 hover:text-slate-900" %>
+          <% else %>
+            <span class="text-slate-300">Previous</span>
+          <% end %>
+          <span>Page <%= @materials_page %></span>
+          <% if @materials_has_next %>
+            <%= link_to "Next", url_for(request.query_parameters.merge(materials_page: @materials_page + 1)), class: "font-semibold text-slate-600 hover:text-slate-900" %>
+          <% else %>
+            <span class="text-slate-300">Next</span>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>

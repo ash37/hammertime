@@ -1,0 +1,67 @@
+<turbo-frame id="modal" data-controller="modal">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" data-action="click->modal#backdrop">
+    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-900">New draft invoice</h2>
+      </div>
+
+      <% jobs_data = @jobs.map { |job| { id: job.id, title: job.title, customer_id: job.customer_id } } %>
+      <%= form_with model: @invoice,
+        url: invoices_path,
+        method: :post,
+        data: {
+          turbo_frame: "_top",
+          controller: "job-filter",
+          job_filter_jobs_value: jobs_data
+        },
+        class: "mt-4 space-y-4" do |form| %>
+        <% if @invoice.errors.any? %>
+          <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <p class="font-semibold">Please fix the following:</p>
+            <ul class="mt-2 list-disc pl-5">
+              <% @invoice.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div>
+          <%= form.label :customer_id, "Customer", class: "text-sm font-medium text-slate-700" %>
+          <%= form.collection_select :customer_id,
+            @customers,
+            :id,
+            :name,
+            { prompt: "Select customer" },
+            class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm",
+            data: { job_filter_target: "customerSelect", action: "change->job-filter#update" } %>
+        </div>
+
+        <div>
+          <%= form.label :job_id, "Job (optional)", class: "text-sm font-medium text-slate-700" %>
+          <%= form.select :job_id,
+            [],
+            { include_blank: "Unassigned" },
+            class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm",
+            data: { job_filter_target: "jobSelect", placeholder: "Unassigned", current_value: @invoice.job_id } %>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <%= form.label :issued_on, "Issued on", class: "text-sm font-medium text-slate-700" %>
+            <%= form.date_field :issued_on, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+          </div>
+          <div>
+            <%= form.label :due_on, "Due on", class: "text-sm font-medium text-slate-700" %>
+            <%= form.date_field :due_on, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <button type="button" class="text-sm font-semibold text-slate-500 hover:text-slate-700" data-action="click->modal#close">Cancel</button>
+          <%= form.submit "Create draft", class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</turbo-frame>

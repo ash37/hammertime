@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_28_000008) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_29_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,6 +23,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_28_000008) do
     t.boolean "gst_registered", default: false, null: false
     t.string "abn"
     t.string "company_licence_number"
+    t.integer "payroll_day", default: 1, null: false
   end
 
   create_table "customers", force: :cascade do |t|
@@ -81,6 +82,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_28_000008) do
     t.string "status", default: "prospect", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "default_material_markup_percent", precision: 5, scale: 2
     t.index ["account_id", "status"], name: "index_jobs_on_account_id_and_status"
     t.index ["account_id"], name: "index_jobs_on_account_id"
     t.index ["customer_id"], name: "index_jobs_on_customer_id"
@@ -102,19 +104,36 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_28_000008) do
     t.index ["job_id"], name: "index_material_purchases_on_job_id"
   end
 
+  create_table "roster_entries", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "day_of_week", null: false
+    t.time "start_time"
+    t.time "end_time"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "unpaid_break", default: false, null: false
+    t.index ["account_id", "day_of_week"], name: "index_roster_entries_on_account_id_and_day_of_week"
+    t.index ["account_id"], name: "index_roster_entries_on_account_id"
+    t.index ["user_id", "day_of_week"], name: "index_roster_entries_on_user_id_and_day_of_week", unique: true
+    t.index ["user_id"], name: "index_roster_entries_on_user_id"
+  end
+
   create_table "timesheet_entries", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.bigint "user_id", null: false
-    t.bigint "job_id", null: false
+    t.bigint "job_id"
     t.date "work_date", null: false
     t.integer "minutes", default: 0, null: false
     t.integer "hourly_rate_cents", default: 0, null: false
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "status", default: 1, null: false
     t.index ["account_id", "work_date"], name: "index_timesheet_entries_on_account_id_and_work_date"
     t.index ["account_id"], name: "index_timesheet_entries_on_account_id"
     t.index ["job_id"], name: "index_timesheet_entries_on_job_id"
+    t.index ["status"], name: "index_timesheet_entries_on_status"
     t.index ["user_id"], name: "index_timesheet_entries_on_user_id"
   end
 
@@ -152,6 +171,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_28_000008) do
   add_foreign_key "jobs", "customers"
   add_foreign_key "material_purchases", "accounts"
   add_foreign_key "material_purchases", "jobs"
+  add_foreign_key "roster_entries", "accounts"
+  add_foreign_key "roster_entries", "users"
   add_foreign_key "timesheet_entries", "accounts"
   add_foreign_key "timesheet_entries", "jobs"
   add_foreign_key "timesheet_entries", "users"

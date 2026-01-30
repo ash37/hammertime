@@ -22,16 +22,28 @@
         </div>
       <% end %>
       <div>
-        <label class="text-xs font-semibold uppercase tracking-wide text-slate-400">Billed</label>
-        <%= select_tag :billed, options_for_select([["All", ""], ["Unbilled", "unbilled"], ["Billed", "billed"]], params[:billed]), class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</label>
+        <%= select_tag :billed,
+          options_for_select([["All", ""], ["Draft", "draft"], ["Unbilled", "unbilled"], ["Billed", "billed"]], params[:billed]),
+          class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
       </div>
       <div class="md:col-span-5 flex items-center gap-3">
         <%= submit_tag "Filter", class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
         <%= link_to "Reset", timesheet_entries_path, class: "text-sm text-slate-500 hover:text-slate-700" %>
-        <%= link_to "New timesheet", new_timesheet_entry_path, class: "ml-auto rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
+        <div class="ml-auto flex items-center gap-3">
+          <%= link_to "New timesheet", new_timesheet_entry_path, class: "rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
+          <% if current_user&.owner? || current_user&.admin? %>
+            <%= link_to "Draft payroll",
+              draft_payroll_preview_timesheet_entries_path,
+              data: { turbo_frame: "modal" },
+              class: "rounded-xl bg-sky-400 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600" %>
+          <% end %>
+        </div>
       </div>
     <% end %>
   </div>
+
+  <turbo-frame id="modal" data-controller="modal"></turbo-frame>
 
   <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="overflow-hidden rounded-xl border border-slate-100">
@@ -51,21 +63,40 @@
         <tbody class="divide-y divide-slate-100 text-slate-600">
           <% @timesheet_entries.each do |entry| %>
             <tr>
-              <td class="px-4 py-3"><%= entry.work_date.strftime("%d %b %Y") %></td>
-              <td class="px-4 py-3 text-slate-900"><%= link_to entry.job.title, job_path(entry.job), class: "hover:underline" %></td>
+              <td class="px-4 py-3"><%= entry.work_date.strftime("%a %b %d").upcase %></td>
+              <td class="px-4 py-3 text-slate-900">
+                <% if entry.job.present? %>
+                  <%= link_to entry.job.title, job_path(entry.job), class: "hover:underline" %>
+                <% else %>
+                  <span class="text-slate-400">Unassigned</span>
+                <% end %>
+              </td>
               <td class="px-4 py-3"><%= entry.user.display_name %></td>
               <td class="px-4 py-3 text-right"><%= entry.hours.round(2) %></td>
               <td class="px-4 py-3 text-right"><%= number_to_currency(entry.hourly_rate_cents / 100.0) %></td>
               <td class="px-4 py-3 text-right font-medium text-slate-900"><%= number_to_currency(entry.total_cents / 100.0) %></td>
               <td class="px-4 py-3 text-right">
-                <% if entry.billed? %>
+                <% if entry.draft? %>
+                  <span class="rounded-full bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-700">Draft</span>
+                <% elsif entry.billed? %>
                   <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">Billed</span>
                 <% else %>
                   <span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Unbilled</span>
                 <% end %>
               </td>
               <td class="px-4 py-3 text-right">
-                <%= link_to "Edit", edit_timesheet_entry_path(entry), class: "text-sm font-semibold text-slate-700 hover:text-slate-900" %>
+                <div class="flex items-center justify-end gap-3">
+                  <% unless entry.billed? %>
+                    <%= link_to "Edit", edit_timesheet_entry_path(entry), class: "text-sm font-semibold text-slate-700 hover:text-slate-900" %>
+                  <% end %>
+                  <% if entry.draft? && (current_user&.owner? || current_user&.admin?) %>
+                    <% if entry.job.present? %>
+                      <%= button_to "Approve", approve_timesheet_entry_path(entry), method: :patch, class: "text-sm font-semibold text-emerald-600 hover:text-emerald-700" %>
+                    <% else %>
+                      <span class="text-xs text-slate-400">Needs job</span>
+                    <% end %>
+                  <% end %>
+                </div>
               </td>
             </tr>
           <% end %>

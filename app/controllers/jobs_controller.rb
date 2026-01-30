@@ -11,7 +11,7 @@ class JobsController < ApplicationController
     authorize @job
 
     @timesheets = policy_scope(TimesheetEntry).where(job: @job).includes(:user).order(work_date: :desc)
-    @unbilled_timesheets = @timesheets.left_joins(:invoice_line_item).where(invoice_line_items: { id: nil })
+    @unbilled_timesheets = @timesheets.where(status: :unbilled).left_joins(:invoice_line_item).where(invoice_line_items: { id: nil })
     @draft_invoices = policy_scope(Invoice).where(job: @job, status: :draft).order(created_at: :desc)
 
     @materials = policy_scope(MaterialPurchase).where(job: @job).order(purchased_on: :desc)
@@ -65,7 +65,7 @@ class JobsController < ApplicationController
 
     timesheet_ids = Array(params[:timesheet_entry_ids]).reject(&:blank?)
     selected = policy_scope(TimesheetEntry)
-               .where(job: @job, id: timesheet_ids)
+               .where(job: @job, id: timesheet_ids, status: :unbilled)
                .left_joins(:invoice_line_item)
                .where(invoice_line_items: { id: nil })
 
@@ -84,7 +84,7 @@ class JobsController < ApplicationController
     end
 
     @timesheets = policy_scope(TimesheetEntry).where(job: @job).includes(:user).order(work_date: :desc)
-    @unbilled_timesheets = @timesheets.left_joins(:invoice_line_item).where(invoice_line_items: { id: nil })
+    @unbilled_timesheets = @timesheets.where(status: :unbilled).left_joins(:invoice_line_item).where(invoice_line_items: { id: nil })
     @draft_invoices = policy_scope(Invoice).where(job: @job, status: :draft).order(created_at: :desc)
 
     respond_to do |format|
@@ -146,7 +146,7 @@ class JobsController < ApplicationController
   end
 
   def job_params
-    params.require(:job).permit(:customer_id, :title, :description, :site_address, :status)
+    params.require(:job).permit(:customer_id, :title, :description, :site_address, :status, :default_material_markup_percent)
   end
 
   def load_form_collections

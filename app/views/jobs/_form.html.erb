@@ -30,6 +30,11 @@
     <%= form.text_area :description, rows: 4, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
   </div>
 
+  <div>
+    <%= form.label :default_material_markup_percent, "Default material markup %", class: "text-sm font-medium text-slate-700" %>
+    <%= form.number_field :default_material_markup_percent, step: 0.01, min: 0, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+  </div>
+
   <div class="flex items-center gap-3">
     <%= form.submit class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
     <%= link_to "Cancel", jobs_path, class: "text-sm text-slate-500 hover:text-slate-700" %>

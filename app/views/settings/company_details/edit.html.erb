@@ -18,9 +18,24 @@
       </div>
     </div>
 
-    <div>
-      <%= form.label :company_licence_number, "Company licence number", class: "text-sm font-medium text-slate-700" %>
-      <%= form.text_field :company_licence_number, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+    <div class="grid gap-6 md:grid-cols-2">
+      <div data-controller="payroll-week">
+        <%= form.label :payroll_day, "Payroll day", class: "text-sm font-medium text-slate-700" %>
+        <% payroll_options = [["Monday", 1], ["Tuesday", 2], ["Wednesday", 3], ["Thursday", 4], ["Friday", 5], ["Saturday", 6], ["Sunday", 0]] %>
+        <%= form.select :payroll_day,
+          payroll_options,
+          {},
+          class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm",
+          data: { payroll_week_target: "select", action: "change->payroll-week#update" } %>
+        <p class="mt-2 text-xs text-slate-500">
+          Used to generate draft payroll for the prior 7-day pay week.
+          <span class="font-semibold text-slate-700" data-payroll-week-target="example"></span>
+        </p>
+      </div>
+      <div>
+        <%= form.label :company_licence_number, "Company licence number", class: "text-sm font-medium text-slate-700" %>
+        <%= form.text_field :company_licence_number, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+      </div>
     </div>
 
     <div class="flex items-center gap-3">

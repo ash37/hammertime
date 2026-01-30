@@ -1,8 +1,19 @@
-<%= form_with model: material_purchase, class: "space-y-6", data: { controller: "material-totals" } do |form| %>
+<%= form_with model: material_purchase,
+  class: "space-y-6",
+  data: { controller: "material-totals job-markup", job_markup_auto_value: material_purchase.new_record? } do |form| %>
   <div class="grid gap-6 md:grid-cols-2">
     <div>
       <%= form.label :job_id, "Job", class: "text-sm font-medium text-slate-700" %>
-      <%= form.collection_select :job_id, @jobs, :id, :title, { prompt: "Select job" }, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+      <%= form.select :job_id,
+        [],
+        {},
+        class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm",
+        data: { action: "change->job-markup#update", job_markup_target: "jobSelect" } do %>
+        <option value="">Select job</option>
+        <% @jobs.each do |job| %>
+          <option value="<%= job.id %>" data-default-markup="<%= job.default_material_markup_percent %>" <%= "selected" if job.id == material_purchase.job_id %>><%= job.title %></option>
+        <% end %>
+      <% end %>
     </div>
     <div>
       <%= form.label :purchased_on, "Purchased on", class: "text-sm font-medium text-slate-700" %>
@@ -35,7 +46,7 @@
     </div>
     <div>
       <%= form.label :markup_percent, "Markup %", class: "text-sm font-medium text-slate-700" %>
-      <%= form.number_field :markup_percent, step: 0.01, min: 0, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", data: { action: "input->material-totals#update", material_totals_target: "markup" } %>
+      <%= form.number_field :markup_percent, step: 0.01, min: 0, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", data: { action: "input->material-totals#update", material_totals_target: "markup", job_markup_target: "markup" } %>
     </div>
   </div>
 

@@ -1,0 +1,32 @@
+<turbo-frame id="modal" data-controller="modal">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" data-action="click->modal#backdrop">
+    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-900">Draft payroll</h2>
+      </div>
+      <div class="mt-4 space-y-4 text-sm text-slate-600">
+        <p>
+          This will create draft timesheets for rostered users from
+          <span class="font-semibold text-slate-900"><%= @range.begin.strftime("%a %d %b") %></span>
+          to
+          <span class="font-semibold text-slate-900"><%= @range.end.strftime("%a %d %b") %></span>.
+        </p>
+      </div>
+
+      <%= form_with url: draft_payroll_timesheet_entries_path, method: :post, data: { turbo_frame: "_top" }, class: "mt-6 space-y-4" do %>
+        <div>
+          <label class="text-sm font-medium text-slate-700">Apply job to all drafts (optional)</label>
+          <%= select_tag :job_id,
+            options_from_collection_for_select(@jobs, :id, :title),
+            include_blank: "Unassigned",
+            class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <button type="button" class="text-sm font-semibold text-slate-500 hover:text-slate-700" data-action="click->modal#close">Cancel</button>
+          <%= submit_tag "Create drafts", class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</turbo-frame>

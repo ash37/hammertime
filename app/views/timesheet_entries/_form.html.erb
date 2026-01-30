@@ -1,4 +1,10 @@
-<%= form_with model: timesheet_entry, class: "space-y-6", data: { controller: "timesheet-totals" } do |form| %>
+<%= form_with model: timesheet_entry,
+  class: "space-y-6",
+  data: {
+    controller: "timesheet-totals",
+    timesheet_totals_billing_rate_value: @billing_rate_dollars,
+    timesheet_totals_hourly_cost_value: @hourly_cost_dollars
+  } do |form| %>
   <% if timesheet_entry.errors.any? %>
     <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
       <p class="font-semibold">Please fix the following:</p>
@@ -17,7 +23,23 @@
     <% if @users.any? %>
       <div>
         <%= form.label :user_id, "User", class: "text-sm font-medium text-slate-700" %>
-        <%= form.collection_select :user_id, @users, :id, :email, { prompt: "Select user" }, class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
+        <%= select_tag "timesheet_entry[user_id]",
+          options_for_select(
+            @users.map do |user|
+              [
+                user.display_name,
+                user.id,
+                {
+                  "data-billing-rate": (user.default_billing_rate_cents.to_f / 100),
+                  "data-hourly-cost": (user.hourly_cost_cents.to_f / 100)
+                }
+              ]
+            end,
+            timesheet_entry.user_id
+          ),
+          include_blank: "Select user",
+          class: "mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm",
+          data: { action: "change->timesheet-totals#update", timesheet_totals_target: "userSelect" } %>
       </div>
     <% end %>
   </div>
@@ -41,19 +63,29 @@
   </div>
 
   <div class="grid gap-6 md:grid-cols-2">
-    <div>
-      <label class="text-sm font-medium text-slate-700">Hourly rate</label>
-      <div class="mt-2 flex items-center gap-2">
-        <span class="text-sm text-slate-400">$</span>
-        <%= number_field_tag "timesheet_entry[hourly_rate_dollars]", @hourly_rate_dollars, step: 0.01, min: 0, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm", data: { action: "input->timesheet-totals#update", timesheet_totals_target: "rate" } %>
+    <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+      <% if current_user&.owner? || current_user&.admin? %>
+        <div class="flex items-center justify-between">
+          <span>Billing rate</span>
+          <span class="font-semibold" data-timesheet-totals-target="billingRate"><%= number_to_currency(@billing_rate_dollars) %></span>
+        </div>
+      <% end %>
+      <div class="mt-2 flex items-center justify-between">
+        <span>Hourly cost</span>
+        <span class="font-semibold" data-timesheet-totals-target="hourlyCost"><%= number_to_currency(@hourly_cost_dollars) %></span>
       </div>
     </div>
-  </div>
-
-  <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
-    <div class="flex items-center justify-between">
-      <span>Estimated total</span>
-      <span class="font-semibold" data-timesheet-totals-target="total"><%= number_to_currency(timesheet_entry.total_cents / 100.0) %></span>
+    <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+      <% if current_user&.owner? || current_user&.admin? %>
+        <div class="flex items-center justify-between">
+          <span>Estimated bill total</span>
+          <span class="font-semibold" data-timesheet-totals-target="billTotal"><%= number_to_currency(@estimated_bill_total) %></span>
+        </div>
+      <% end %>
+      <div class="mt-2 flex items-center justify-between">
+        <span>Estimated cost total</span>
+        <span class="font-semibold" data-timesheet-totals-target="costTotal"><%= number_to_currency(@estimated_cost_total) %></span>
+      </div>
     </div>
   </div>
 

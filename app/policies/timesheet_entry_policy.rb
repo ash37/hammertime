@@ -19,6 +19,14 @@ class TimesheetEntryPolicy < ApplicationPolicy
     same_account? && (manage_all? || owns_record?)
   end
 
+  def approve?
+    same_account? && manage_all?
+  end
+
+  def draft_payroll?
+    manage_all?
+  end
+
   class Scope < Scope
     def resolve
       return scope.none unless user

@@ -1,10 +1,50 @@
 class InvoicesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_invoice, only: %i[show print add_labour add_materials mark_sent mark_paid void]
+  before_action :set_invoice, only: %i[show print add_labour add_materials mark_sent mark_paid void edit update]
 
   def index
     authorize Invoice
     @invoices = policy_scope(Invoice).includes(:customer, :job).order(issued_on: :desc, created_at: :desc)
+  end
+
+  def new
+    @invoice = Invoice.new(account: current_account, status: :draft, issued_on: Date.current, due_on: Date.current + 14)
+    authorize @invoice
+    load_invoice_form_collections
+  end
+
+  def create
+    @invoice = Invoice.new(invoice_params)
+    @invoice.account = current_account
+    @invoice.status = :draft
+    @invoice.issued_on ||= Date.current
+    @invoice.due_on ||= Date.current + 14
+    authorize @invoice
+
+    if @invoice.save
+      redirect_to invoice_path(@invoice), notice: "Draft invoice created."
+    else
+      load_invoice_form_collections
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    authorize @invoice
+    ensure_draft!
+    load_invoice_form_collections
+  end
+
+  def update
+    authorize @invoice
+    ensure_draft!
+
+    if @invoice.update(invoice_params)
+      redirect_to invoice_path(@invoice), notice: "Invoice updated."
+    else
+      load_invoice_form_collections
+      render :edit, status: :unprocessable_entity
+    end
   end
 
   def show
@@ -24,7 +64,7 @@ class InvoicesController < ApplicationController
 
     timesheet_ids = Array(params[:timesheet_entry_ids]).reject(&:blank?)
     selected = policy_scope(TimesheetEntry)
-               .where(job: @invoice.job, id: timesheet_ids)
+               .where(job: @invoice.job, id: timesheet_ids, status: :unbilled)
                .left_joins(:invoice_line_item)
                .where(invoice_line_items: { id: nil })
 
@@ -107,7 +147,7 @@ class InvoicesController < ApplicationController
 
     if @invoice.job
       @unbilled_timesheets = policy_scope(TimesheetEntry)
-                             .where(job: @invoice.job)
+                             .where(job: @invoice.job, status: :unbilled)
                              .left_joins(:invoice_line_item)
                              .where(invoice_line_items: { id: nil })
                              .includes(:user)
@@ -131,6 +171,7 @@ class InvoicesController < ApplicationController
     ensure_admin!
 
     @invoice.update!(status: status)
+    load_invoice_context
 
     respond_to do |format|
       format.turbo_stream do
@@ -162,5 +203,20 @@ class InvoicesController < ApplicationController
       turbo_stream.replace("invoice_header", partial: "invoices/header", locals: { invoice: @invoice }),
       turbo_stream.replace("flash", partial: "shared/flash")
     ]
+  end
+
+  def load_invoice_form_collections
+    @customers = policy_scope(Customer).active.order(:name)
+    @jobs = policy_scope(Job).order(:title)
+  end
+
+  def invoice_params
+    params.require(:invoice).permit(:customer_id, :job_id, :issued_on, :due_on)
+  end
+
+  def ensure_draft!
+    return if @invoice.draft?
+
+    redirect_to invoice_path(@invoice), alert: "Only draft invoices can be edited."
   end
 end

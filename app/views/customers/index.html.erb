@@ -2,11 +2,11 @@
 
 <div class="space-y-4">
   <div class="flex flex-wrap items-center gap-3">
-    <%= link_to "New customer", new_customer_path, class: "rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
-    <div class="ml-auto flex items-center gap-2 text-sm text-slate-500">
+    <div class="flex items-center gap-2 text-sm text-slate-500">
       <%= link_to "Active", customers_path, class: "rounded-full px-3 py-1 #{params[:status] == 'archived' ? 'text-slate-400' : 'bg-slate-900 text-white'}" %>
       <%= link_to "Archived", customers_path(status: "archived"), class: "rounded-full px-3 py-1 #{params[:status] == 'archived' ? 'bg-slate-900 text-white' : 'text-slate-400'}" %>
     </div>
+    <%= link_to "New customer", new_customer_path, class: "ml-auto rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" %>
   </div>
 
   <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

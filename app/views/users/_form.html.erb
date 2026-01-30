@@ -27,14 +27,28 @@
 
   <div class="grid gap-6 md:grid-cols-2">
     <div>
-      <label class="text-sm font-medium text-slate-700">Default Billing Rate ($/hr)</label>
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-slate-700">Default Billing Rate ($/hr)</label>
+        <span class="group relative inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-[11px] font-semibold text-slate-500">?
+          <span class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm opacity-0 transition group-hover:opacity-100">
+            Hourly rate billed to Customer.
+          </span>
+        </span>
+      </div>
       <div class="mt-2 flex items-center gap-2">
         <span class="text-sm text-slate-400">$</span>
         <%= number_field_tag "user[default_billing_rate_dollars]", @default_billing_rate_dollars, step: 0.01, min: 0, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>
       </div>
     </div>
     <div>
-      <label class="text-sm font-medium text-slate-700">Hourly Cost ($/hr)</label>
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-slate-700">Hourly Cost ($/hr)</label>
+        <span class="group relative inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-[11px] font-semibold text-slate-500">?
+          <span class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm opacity-0 transition group-hover:opacity-100">
+            Hourly payrate paid by the company to the employee.
+          </span>
+        </span>
+      </div>
       <div class="mt-2 flex items-center gap-2">
         <span class="text-sm text-slate-400">$</span>
         <%= number_field_tag "user[hourly_cost_dollars]", @hourly_cost_dollars, step: 0.01, min: 0, class: "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" %>

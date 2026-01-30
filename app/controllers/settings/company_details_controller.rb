@@ -20,6 +20,6 @@ class Settings::CompanyDetailsController < ApplicationController
   private
 
   def account_params
-    params.require(:account).permit(:company_name, :gst_registered, :abn, :company_licence_number)
+    params.require(:account).permit(:company_name, :gst_registered, :abn, :company_licence_number, :payroll_day)
   end
 end

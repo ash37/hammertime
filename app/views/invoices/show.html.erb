@@ -5,6 +5,23 @@
     <%= render "header", invoice: @invoice %>
   </div>
 
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-wrap items-center gap-3">
+      <% if current_user&.owner? || current_user&.admin? %>
+        <% if @invoice.draft? %>
+          <%= link_to "Edit draft",
+            edit_invoice_path(@invoice),
+            data: { turbo_frame: "modal" },
+            class: "rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
+        <% end %>
+        <%= button_to "Mark sent", mark_sent_invoice_path(@invoice), method: :patch, class: "rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
+        <%= button_to "Mark paid", mark_paid_invoice_path(@invoice), method: :patch, class: "rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
+        <%= button_to "Void", void_invoice_path(@invoice), method: :patch, class: "rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50" %>
+      <% end %>
+      <%= link_to "Print", print_invoice_path(@invoice), class: "ml-auto rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800", target: "_blank" %>
+    </div>
+  </div>
+
   <div class="grid gap-6 md:grid-cols-2">
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Company</p>
@@ -35,15 +52,6 @@
     </div>
     <%= render "totals", invoice: @invoice %>
   </div>
-
-  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-    <div class="flex flex-wrap items-center gap-3">
-      <% if current_user&.owner? || current_user&.admin? %>
-        <%= button_to "Mark sent", mark_sent_invoice_path(@invoice), method: :patch, class: "rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
-        <%= button_to "Mark paid", mark_paid_invoice_path(@invoice), method: :patch, class: "rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" %>
-        <%= button_to "Void", void_invoice_path(@invoice), method: :patch, class: "rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50" %>
-      <% end %>
-      <%= link_to "Print", print_invoice_path(@invoice), class: "ml-auto rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800", target: "_blank" %>
-    </div>
-  </div>
 </div>
+
+<turbo-frame id="modal"></turbo-frame>

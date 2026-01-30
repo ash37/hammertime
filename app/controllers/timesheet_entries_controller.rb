@@ -1,6 +1,6 @@
 class TimesheetEntriesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_timesheet_entry, only: %i[edit update]
+  before_action :set_timesheet_entry, only: %i[edit update approve destroy]
 
   def index
     authorize TimesheetEntry
@@ -30,9 +30,11 @@ class TimesheetEntriesController < ApplicationController
 
     case params[:billed]
     when "billed"
-      scope = scope.joins(:invoice_line_item)
+      scope = scope.joins(:invoice_line_item).where.not(status: :draft)
     when "unbilled"
-      scope = scope.left_joins(:invoice_line_item).where(invoice_line_items: { id: nil })
+      scope = scope.where(status: :unbilled).left_joins(:invoice_line_item).where(invoice_line_items: { id: nil })
+    when "draft"
+      scope = scope.where(status: :draft)
     end
 
     @timesheet_entries = scope.order(work_date: :desc, created_at: :desc)
@@ -44,7 +46,6 @@ class TimesheetEntriesController < ApplicationController
     @timesheet_entry.work_date ||= Date.current
     authorize @timesheet_entry
 
-    @timesheet_entry.hourly_rate_cents ||= current_user.hourly_rate_cents || current_account&.default_hourly_rate_cents || 0
     build_form_state(@timesheet_entry)
 
     load_form_collections
@@ -55,8 +56,8 @@ class TimesheetEntriesController < ApplicationController
     @timesheet_entry.account = current_account
     @timesheet_entry.user = current_user unless user_assignable?
 
-    apply_rate(@timesheet_entry)
     apply_duration(@timesheet_entry)
+    apply_rates(@timesheet_entry)
 
     authorize @timesheet_entry
 
@@ -78,8 +79,8 @@ class TimesheetEntriesController < ApplicationController
   def update
     authorize @timesheet_entry
     @timesheet_entry.assign_attributes(timesheet_entry_params)
-    apply_rate(@timesheet_entry)
     apply_duration(@timesheet_entry)
+    apply_rates(@timesheet_entry)
 
     if @timesheet_entry.save
       redirect_to timesheet_entries_path, notice: "Timesheet entry updated."
@@ -88,6 +89,51 @@ class TimesheetEntriesController < ApplicationController
       load_form_collections
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def destroy
+    authorize @timesheet_entry
+    @timesheet_entry.destroy
+    redirect_to timesheet_entries_path, notice: "Timesheet entry deleted."
+  end
+
+  def approve
+    authorize @timesheet_entry, :approve?
+
+    unless @timesheet_entry.draft?
+      redirect_to timesheet_entries_path, alert: "Only draft timesheets can be approved."
+      return
+    end
+
+    if @timesheet_entry.job_id.blank?
+      redirect_to edit_timesheet_entry_path(@timesheet_entry), alert: "Select a job before approving."
+      return
+    end
+
+    @timesheet_entry.update!(status: :unbilled)
+    redirect_to timesheet_entries_path, notice: "Timesheet approved."
+  end
+
+  def draft_payroll
+    authorize TimesheetEntry, :draft_payroll?
+
+    job = payroll_job
+
+    total_created = 0
+    range = current_account.payroll_week_range(Date.current)
+    range.each do |date|
+      total_created += TimesheetEntry.generate_drafts_for(date, account: current_account, job: job)
+    end
+
+    range_label = "#{range.begin.strftime("%d %b")} - #{range.end.strftime("%d %b")}"
+    redirect_to timesheet_entries_path, notice: "Draft payroll generated for #{range_label} (#{total_created} drafts)."
+  end
+
+  def draft_payroll_preview
+    authorize TimesheetEntry, :draft_payroll?
+
+    @range = current_account.payroll_week_range(Date.current)
+    @jobs = policy_scope(Job).order(:title)
   end
 
   private
@@ -113,20 +159,13 @@ class TimesheetEntriesController < ApplicationController
     entry.minutes = (hours * 60) + minutes
   end
 
-  def apply_rate(entry)
-    rate_value = duration_params[:hourly_rate_dollars]
-    return if rate_value.blank?
-
-    entry.hourly_rate_cents = (rate_value.to_f * 100).round
-  end
-
   def duration_params
-    timesheet_entry_form_params.slice(:duration_hours, :duration_minutes, :hourly_rate_dollars)
+    timesheet_entry_form_params.slice(:duration_hours, :duration_minutes)
   end
 
   def timesheet_entry_form_params
     @timesheet_entry_form_params ||= params.require(:timesheet_entry)
-      .permit(:job_id, :user_id, :work_date, :notes, :duration_hours, :duration_minutes, :hourly_rate_dollars)
+      .permit(:job_id, :user_id, :work_date, :notes, :duration_hours, :duration_minutes)
   end
 
   def load_form_collections
@@ -142,9 +181,26 @@ class TimesheetEntriesController < ApplicationController
     nil
   end
 
+  def payroll_job
+    job_id = params[:job_id].presence
+    return if job_id.blank?
+
+    policy_scope(Job).find(job_id)
+  end
+
   def build_form_state(entry)
     @duration_hours = (entry.minutes / 60)
     @duration_minutes = (entry.minutes % 60)
-    @hourly_rate_dollars = (entry.hourly_rate_cents.to_f / 100)
+    rate_user = entry.user || current_user
+    @billing_rate_dollars = (rate_user&.default_billing_rate_cents.to_f / 100)
+    @hourly_cost_dollars = (rate_user&.hourly_cost_cents.to_f / 100)
+    total_hours = entry.minutes.to_f / 60
+    @estimated_bill_total = total_hours * @billing_rate_dollars
+    @estimated_cost_total = total_hours * @hourly_cost_dollars
+  end
+
+  def apply_rates(entry)
+    rate_user = entry.user || current_user
+    entry.hourly_rate_cents = rate_user&.default_billing_rate_cents || current_account&.default_hourly_rate_cents || 0
   end
 end

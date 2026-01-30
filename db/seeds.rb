@@ -8,6 +8,7 @@ account = Account.find_or_create_by!(name: "Hammertime") do |record|
   record.gst_registered = true
   record.abn = "12 345 678 901"
   record.company_licence_number = "QBCC 123456"
+  record.payroll_day = 1
 end
 
 owner = account.users.find_or_create_by!(email: "owner@hammertime.test") do |user|
@@ -18,6 +19,13 @@ owner = account.users.find_or_create_by!(email: "owner@hammertime.test") do |use
   user.mobile = "+61 400 000 000"
   user.default_billing_rate_cents = 15000
   user.hourly_cost_cents = 9000
+end
+
+(1..5).each do |day|
+  account.roster_entries.find_or_create_by!(user: owner, day_of_week: day) do |entry|
+    entry.start_time = Time.zone.parse("08:00")
+    entry.end_time = Time.zone.parse("16:00")
+  end
 end
 
 customer = account.customers.find_or_create_by!(name: "Acme Property Group") do |record|

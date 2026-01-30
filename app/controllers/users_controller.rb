@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_user, only: %i[show edit update destroy invite deactivate]
+  before_action :set_user, only: %i[show edit update destroy invite deactivate update_roster]
 
   def index
     authorize User
@@ -10,6 +10,7 @@ class UsersController < ApplicationController
 
   def show
     authorize @user
+    @roster_entries = @user.build_roster_entries_for_week
   end
 
   def new
@@ -85,6 +86,17 @@ class UsersController < ApplicationController
     redirect_to user_path(@user), notice: "Invitation sent."
   end
 
+  def update_roster
+    authorize @user
+
+    if @user.update(roster_params)
+      redirect_to user_path(@user), notice: "Roster updated."
+    else
+      @roster_entries = @user.build_roster_entries_for_week
+      render :show, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_user
@@ -93,6 +105,10 @@ class UsersController < ApplicationController
 
   def user_params
     params.require(:user).permit(:name, :email, :mobile, :role, :password, :password_confirmation)
+  end
+
+  def roster_params
+    params.require(:user).permit(roster_entries_attributes: [ :id, :day_of_week, :start_time, :end_time, :unpaid_break, :_destroy ])
   end
 
   def assign_currency_fields(user)

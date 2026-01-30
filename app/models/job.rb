@@ -11,4 +11,5 @@ class Job < ApplicationRecord
 
   validates :title, presence: true
   validates :status, presence: true
+  validates :default_material_markup_percent, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 end
